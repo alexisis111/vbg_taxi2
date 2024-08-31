@@ -5,14 +5,14 @@ import Header from "./components/Header/Header.jsx";
 
 const App = () => {
 
-
     const [phoneNumber, setPhoneNumber] = useState('');
-
-    const {tg, queryId} = useTelegram();
+    const {tg, user, queryId} = useTelegram();
 
     const onSendData = useCallback(() => {
         const data = {
             phoneNumber,
+            user_id: user?.id,
+            first_name: user?.first_name,
             queryId
         }
         tg.sendData(JSON.stringify(data));
@@ -23,9 +23,7 @@ const App = () => {
             },
             body: JSON.stringify(data)
         })
-    }, [phoneNumber])
-
-
+    }, [phoneNumber, user, queryId])
 
     useEffect(() => {
         tg.onEvent('mainButtonClicked', onSendData)
@@ -39,7 +37,6 @@ const App = () => {
             text: 'Отправить данные'
         })
     }, [])
-
 
     const handlePhoneNumberChange = (e) => {
         let input = e.target.value;
@@ -88,7 +85,6 @@ const App = () => {
                 </div>
             </div>
         </>
-
     );
 };
 
