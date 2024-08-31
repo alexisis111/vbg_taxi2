@@ -7,7 +7,7 @@ const App = () => {
 
     const [phoneNumber, setPhoneNumber] = useState('');
     const {tg, user, userId, queryId} = useTelegram();
-
+    //onSendData - отправляем все из хука на сервер, для проверки БД
     const onSendData = useCallback(() => {
         const data = {
             phoneNumber,
