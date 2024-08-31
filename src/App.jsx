@@ -1,7 +1,7 @@
 import {useCallback, useEffect, useState} from 'react';
 import './App.css';
 import {useTelegram} from "./hooks/useTelegram.js";
-import Header from "./components/Header/Header.jsx";
+
 
 const App = () => {
 
@@ -67,7 +67,6 @@ const App = () => {
 
     return (
         <>
-            <Header/>
             <div className='flex flex-col items-center justify-center pt-10'>
                 <label className="text-gray-600">
                     Введите ваш номер телефона
