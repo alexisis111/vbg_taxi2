@@ -14,13 +14,10 @@ const App = () => {
 
     const onSendData = useCallback(() => {
         const data = {
-            country,
-            street,
-            subject,
             phoneNumber
         }
         tg.sendData(JSON.stringify(data));
-    }, [country, street, subject, phoneNumber])
+    }, [phoneNumber])
 
     useEffect(() => {
         tg.onEvent('mainButtonClicked', onSendData)
@@ -36,25 +33,9 @@ const App = () => {
     }, [])
 
 
-    useEffect(() => {
-        if(!street || !country) {
-            tg.MainButton.hide();
-        } else {
-            tg.MainButton.show();
-        }
-    }, [country, street])
 
-    const onChangeCountry = (e) => {
-        setCountry(e.target.value)
-    }
 
-    const onChangeStreet = (e) => {
-        setStreet(e.target.value)
-    }
 
-    const onChangeSubject = (e) => {
-        setSubject(e.target.value)
-    }
 
     const handlePhoneNumberChange = (e) => {
         let input = e.target.value;
@@ -81,27 +62,6 @@ const App = () => {
     return (
         <>
             <Header/>
-            <div className={"form"}>
-                <h3>Введите ваши данные</h3>
-                <input
-                    className={'input'}
-                    type="text"
-                    placeholder={'Страна'}
-                    value={country}
-                    onChange={onChangeCountry}
-                />
-                <input
-                    className={'input'}
-                    type="text"
-                    placeholder={'Улица'}
-                    value={street}
-                    onChange={onChangeStreet}
-                />
-                <select value={subject} onChange={onChangeSubject} className={'select'}>
-                    <option value={'physical'}>Физ. лицо</option>
-                    <option value={'legal'}>Юр. лицо</option>
-                </select>
-            </div>
             <div className='flex flex-col items-center justify-center pt-10'>
                 <label className="text-gray-600">
                     Введите ваш номер телефона
