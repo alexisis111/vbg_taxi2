@@ -1,23 +1,31 @@
-import React, {useCallback, useEffect, useState} from 'react';
+import {useCallback, useEffect, useState} from 'react';
 import './App.css';
 import {useTelegram} from "./hooks/useTelegram.js";
 import Header from "./components/Header/Header.jsx";
 
 const App = () => {
-    const [country, setCountry] = useState('');
-    const [street, setStreet] = useState('');
-    const [subject, setSubject] = useState('physical');
+
 
     const [phoneNumber, setPhoneNumber] = useState('');
 
-    const {tg} = useTelegram();
+    const {tg, queryId} = useTelegram();
 
     const onSendData = useCallback(() => {
         const data = {
-            phoneNumber
+            phoneNumber,
+            queryId
         }
         tg.sendData(JSON.stringify(data));
+        fetch('https://a2c2-185-108-19-43.ngrok-free.app/web-data', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(data)
+        })
     }, [phoneNumber])
+
+
 
     useEffect(() => {
         tg.onEvent('mainButtonClicked', onSendData)
@@ -31,10 +39,6 @@ const App = () => {
             text: 'Отправить данные'
         })
     }, [])
-
-
-
-
 
 
     const handlePhoneNumberChange = (e) => {
