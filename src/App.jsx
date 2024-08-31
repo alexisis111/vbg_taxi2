@@ -6,13 +6,14 @@ import {useTelegram} from "./hooks/useTelegram.js";
 const App = () => {
 
     const [phoneNumber, setPhoneNumber] = useState('');
-    const {tg, user, queryId} = useTelegram();
+    const {tg, user, userId, queryId} = useTelegram();
 
     const onSendData = useCallback(() => {
         const data = {
             phoneNumber,
             user,
-            queryId
+            queryId,
+            userId
         }
         fetch('https://a2c2-185-108-19-43.ngrok-free.app/web-data', {
             method: 'POST',
@@ -22,7 +23,7 @@ const App = () => {
             body: JSON.stringify(data)
         })
         tg.sendData(JSON.stringify(data))
-    }, [phoneNumber, user, queryId])
+    }, [phoneNumber, user, queryId, userId])
 
     useEffect(() => {
         tg.onEvent('mainButtonClicked', onSendData)
