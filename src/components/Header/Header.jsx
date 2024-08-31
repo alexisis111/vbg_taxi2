@@ -16,7 +16,7 @@ const Header = () => {
                 </svg>
             </Button>
             <span className="text-lg font-semibold text-gray-800">
-                    {user || 'User'}
+                    {user.first_name || 'User'}
             </span>
         </div>
     );
