@@ -4,8 +4,8 @@ import {useTelegram} from "../../hooks/useTelegram";
 import './Header.css';
 
 const Header = () => {
-    const {user, queryId, onClose} = useTelegram();
-    console.log(queryId);
+    const {user, onClose} = useTelegram();
+    console.log(user);
 
     return (
         <div className="flex items-center justify-between p-4 bg-gray-100 shadow-md">
@@ -16,7 +16,7 @@ const Header = () => {
                 </svg>
             </Button>
             <span className="text-lg font-semibold text-gray-800">
-                    {queryId.username || 'User'}
+                    {user || 'User'}
             </span>
         </div>
     );
