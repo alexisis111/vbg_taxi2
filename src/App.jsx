@@ -15,7 +15,6 @@ const App = () => {
             first_name: user,
             queryId
         }
-        tg.sendData(JSON.stringify(data));
         fetch('https://a2c2-185-108-19-43.ngrok-free.app/web-data', {
             method: 'POST',
             headers: {
@@ -23,6 +22,7 @@ const App = () => {
             },
             body: JSON.stringify(data)
         })
+        tg.sendData(JSON.stringify(data))
     }, [phoneNumber, user, queryId])
 
     useEffect(() => {
