@@ -12,7 +12,7 @@ const App = () => {
         const data = {
             phoneNumber,
             user_id: user?.id,
-            first_name: user?.first_name,
+            first_name: user,
             queryId
         }
         tg.sendData(JSON.stringify(data));
