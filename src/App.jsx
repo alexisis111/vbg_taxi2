@@ -11,8 +11,7 @@ const App = () => {
     const onSendData = useCallback(() => {
         const data = {
             phoneNumber,
-            user_id: user?.id,
-            first_name: user,
+            user,
             queryId
         }
         fetch('https://a2c2-185-108-19-43.ngrok-free.app/web-data', {
