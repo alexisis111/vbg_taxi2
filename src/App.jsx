@@ -40,22 +40,28 @@ const App = () => {
     const handlePhoneNumberChange = (e) => {
         let input = e.target.value;
 
+        // Начинается только с +7 и далее 10 цифр
         if (input === '') {
             setPhoneNumber('');
             tg.MainButton.hide();
             return;
         }
 
-        if (/^\+?[78]\d*$/.test(input) || input === '+') {
-            if ((input.startsWith('+7') && input.length <= 12) || (input.startsWith('8') && input.length <= 11) || input === '+') {
-                setPhoneNumber(input);
+        if (input.startsWith('+7') && /^\+7\d{0,10}$/.test(input)) {
+            setPhoneNumber(input);
 
-                if ((input.startsWith('+7') && input.length === 12) || (input.startsWith('8') && input.length === 11)) {
-                    tg.MainButton.show();
-                } else {
-                    tg.MainButton.hide();
-                }
+            if (input.length === 12) { // Полный номер (+7 + 10 цифр)
+                tg.MainButton.show();
+            } else {
+                tg.MainButton.hide();
             }
+        } else if (input.length === 1 && input === '+') {
+            // Если введен только символ +, показать кнопку, иначе скрыть
+            tg.MainButton.hide();
+            setPhoneNumber(input);
+        } else {
+            // Если введен некорректный номер, очищаем ввод
+            setPhoneNumber(input.slice(0, -1)); // Убираем последний введенный символ
         }
     };
 
@@ -86,5 +92,6 @@ const App = () => {
         </>
     );
 };
+
 
 export default App;
