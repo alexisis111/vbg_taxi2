@@ -35,6 +35,7 @@ const App = () => {
         })
     }, [])
 
+
     useEffect(() => {
         if(!street || !country) {
             tg.MainButton.hide();
