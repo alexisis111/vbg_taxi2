@@ -32,18 +32,6 @@ const LocationPicker = () => {
         setDropoff(e.target.value);
     };
 
-    // Функция для получения адреса по координатам
-    const reverseGeocode = async (lat, lon) => {
-        try {
-            const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}&addressdetails=1`);
-            const data = await response.json();
-            return data.display_name;
-        } catch (error) {
-            console.error('Error fetching address:', error);
-            return '';
-        }
-    };
-
     // Хук для обновления карты при получении местоположения пользователя
     const MapUpdater = ({ location }) => {
         const map = useMap();
@@ -59,13 +47,10 @@ const LocationPicker = () => {
     useEffect(() => {
         if (navigator.geolocation) {
             navigator.geolocation.getCurrentPosition(
-                async (position) => {
+                (position) => {
                     const { latitude, longitude } = position.coords;
                     setUserLocation([latitude, longitude]);
-
-                    // Получение адреса и установка в инпут
-                    const address = await reverseGeocode(latitude, longitude);
-                    setPickup(address);
+                    fetchAddress([latitude, longitude], setPickup); // Задать адрес пользователя
                 },
                 (error) => {
                     console.error('Error getting location:', error);
@@ -76,17 +61,27 @@ const LocationPicker = () => {
         }
     }, []);
 
-    // Хук для обработки кликов по карте
-    const LocationMarker = ({ setCoords, setAddress }) => {
+    const fetchAddress = async (coords, setAddress) => {
+        const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${coords[0]}&lon=${coords[1]}&accept-language=ru`);
+        const data = await response.json();
+        const formattedAddress = formatAddress(data.display_name);
+        setAddress(formattedAddress);
+    };
+
+    const formatAddress = (address) => {
+        const parts = address.split(',').map(part => part.trim());
+        const [houseNumber, street, settlement] = parts;
+        return `${settlement}, ${street} ${houseNumber}`;
+    };
+
+    const LocationMarker = ({ setCoords, isDropoff }) => {
         useMapEvents({
             click(e) {
-                const { lat, lng } = e.latlng;
-                setCoords([lat, lng]);
-
-                // Получение адреса по клику и установка в инпут "Куда отвезти?"
-                reverseGeocode(lat, lng).then(address => {
-                    setAddress(address);
-                });
+                const coords = e.latlng;
+                setCoords(coords);
+                if (isDropoff) {
+                    fetchAddress([coords.lat, coords.lng], setDropoff); // Получить адрес и установить в инпут dropoff
+                }
             }
         });
         return null;
@@ -116,18 +111,18 @@ const LocationPicker = () => {
                     center={[51.505, -0.09]} // Исходное положение
                     zoom={13}
                     className="w-full h-full"
-                    style={{ marginTop: '8rem' }} // Отступ карты вниз на высоту инпутов
+                    style={{marginTop: '8rem'}} // Отступ карты вниз на высоту инпутов
                 >
                     <TileLayer
                         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
                         attribution="&copy; OpenStreetMap contributors"
                     />
-                    {userLocation && <Marker position={userLocation} />}
-                    {pickupCoords && <Marker position={pickupCoords} />}
-                    {dropoffCoords && <Marker position={dropoffCoords} />}
-                    <LocationMarker setCoords={setPickupCoords} />
-                    <LocationMarker setCoords={setDropoffCoords} setAddress={setDropoff} />
-                    <MapUpdater location={userLocation} /> {/* Центрирование карты на местоположении */}
+                    {userLocation && <Marker position={userLocation}/>}
+                    {pickupCoords && <Marker position={pickupCoords}/>}
+                    {dropoffCoords && <Marker position={dropoffCoords}/>}
+                    <LocationMarker setCoords={setPickupCoords}/>
+                    <LocationMarker setCoords={setDropoffCoords} isDropoff={true}/> {/* Определяем маркер для dropoff */}
+                    <MapUpdater location={userLocation}/> {/* Центрирование карты на местоположении */}
                 </MapContainer>
             </div>
         </>
