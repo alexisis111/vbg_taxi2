@@ -1,7 +1,7 @@
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { MapContainer, TileLayer, Marker, useMap, useMapEvents } from 'react-leaflet';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 
 // Импорт иконок
 import markerIcon2x from 'leaflet/dist/images/marker-icon-2x.png';
@@ -23,6 +23,7 @@ const LocationPicker = () => {
     const [pickupCoords, setPickupCoords] = useState(null);
     const [dropoffCoords, setDropoffCoords] = useState(null);
     const [userLocation, setUserLocation] = useState(null);
+    const mapRef = useRef(null); // Ссылка на экземпляр карты
 
     const handlePickupChange = (e) => {
         setPickup(e.target.value);
@@ -32,25 +33,24 @@ const LocationPicker = () => {
         setDropoff(e.target.value);
     };
 
-    // Хук для обновления карты при получении местоположения пользователя
     const MapUpdater = ({ location }) => {
         const map = useMap();
         useEffect(() => {
-            if (location) {
-                map.setView(location, 13); // Центрирование карты на местоположении пользователя
+            if (location && map) {
+                map.setView(location, 13);
             }
         }, [location, map]);
         return null;
     };
 
-    // Запрос местоположения пользователя
     useEffect(() => {
         if (navigator.geolocation) {
             navigator.geolocation.getCurrentPosition(
                 (position) => {
                     const { latitude, longitude } = position.coords;
                     setUserLocation([latitude, longitude]);
-                    fetchAddress([latitude, longitude], setPickup); // Задать адрес пользователя
+                    setPickupCoords([latitude, longitude]);
+                    fetchAddress([latitude, longitude], setPickup);
                 },
                 (error) => {
                     console.error('Error getting location:', error);
@@ -74,14 +74,18 @@ const LocationPicker = () => {
         return `${settlement}, ${street} ${houseNumber}`;
     };
 
-    const LocationMarker = ({ setCoords, isDropoff }) => {
+    const handleMarkerDrag = (e, setCoords, setAddress) => {
+        const coords = [e.target.getLatLng().lat, e.target.getLatLng().lng];
+        setCoords(coords);
+        fetchAddress(coords, setAddress);
+    };
+
+    const LocationMarker = () => {
         useMapEvents({
             click(e) {
                 const coords = e.latlng;
-                setCoords(coords);
-                if (isDropoff) {
-                    fetchAddress([coords.lat, coords.lng], setDropoff); // Получить адрес и установить в инпут dropoff
-                }
+                setDropoffCoords([coords.lat, coords.lng]);
+                fetchAddress([coords.lat, coords.lng], setDropoff); // Получить адрес и установить в инпут dropoff
             }
         });
         return null;
@@ -111,18 +115,33 @@ const LocationPicker = () => {
                     center={[51.505, -0.09]} // Исходное положение
                     zoom={13}
                     className="w-full h-full"
-                    style={{marginTop: '8rem'}} // Отступ карты вниз на высоту инпутов
+                    style={{ marginTop: '8rem' }} // Отступ карты вниз на высоту инпутов
+                    whenCreated={mapInstance => { mapRef.current = mapInstance }}
                 >
                     <TileLayer
                         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
                         attribution="&copy; OpenStreetMap contributors"
                     />
-                    {userLocation && <Marker position={userLocation}/>}
-                    {pickupCoords && <Marker position={pickupCoords}/>}
-                    {dropoffCoords && <Marker position={dropoffCoords}/>}
-                    <LocationMarker setCoords={setPickupCoords}/>
-                    <LocationMarker setCoords={setDropoffCoords} isDropoff={true}/> {/* Определяем маркер для dropoff */}
-                    <MapUpdater location={userLocation}/> {/* Центрирование карты на местоположении */}
+                    {pickupCoords && (
+                        <Marker
+                            position={pickupCoords}
+                            draggable={true}
+                            eventHandlers={{
+                                dragend: (e) => handleMarkerDrag(e, setPickupCoords, setPickup),
+                            }}
+                        />
+                    )}
+                    {dropoffCoords && (
+                        <Marker
+                            position={dropoffCoords}
+                            draggable={true}
+                            eventHandlers={{
+                                dragend: (e) => handleMarkerDrag(e, setDropoffCoords, setDropoff),
+                            }}
+                        />
+                    )}
+                    <LocationMarker />
+                    <MapUpdater location={userLocation} />
                 </MapContainer>
             </div>
         </>
