@@ -27,6 +27,7 @@ const LocationPicker = () => {
     const [pickupCoords, setPickupCoords] = useState(null);
     const [dropoffCoords, setDropoffCoords] = useState(null);
     const [routeCoords, setRouteCoords] = useState(null);
+    const [routeDistance, setRouteDistance] = useState(null); // Состояние для хранения расстояния
     const [userLocation, setUserLocation] = useState(null);
     const mapRef = useRef(null); // Ссылка на экземпляр карты
 
@@ -42,7 +43,7 @@ const LocationPicker = () => {
         const map = useMap();
         useEffect(() => {
             if (location && map) {
-                map.setView(location, 13);
+                map.setView(location, 15);
             }
         }, [location, map]);
         return null;
@@ -93,11 +94,12 @@ const LocationPicker = () => {
 
     const getRoute = async (coordinates) => {
         try {
-            const formattedCoords = coordinates.map(coord => [coord[1], coord[0]]); // Преобразуем в [longitude, latitude]
+            //console.log("Coordinates:", coordinates); // Добавлено для отладки
+
             const response = await axios.post(
-                'https://api.openrouteservice.org/v2/directions/driving-car/json',
+                'https://api.openrouteservice.org/v2/directions/driving-car',
                 {
-                    coordinates: formattedCoords,
+                    coordinates: coordinates.map(coord => [coord[1], coord[0]]), // Инверсия координат (широта, долгота)
                 },
                 {
                     headers: {
@@ -108,10 +110,15 @@ const LocationPicker = () => {
             );
 
             if (response.data && response.data.routes && response.data.routes.length > 0) {
-                const encodedPolyline = response.data.routes[0].geometry;
+                const route = response.data.routes[0];
+                const encodedPolyline = route.geometry;
                 const decodedCoords = polyline.decode(encodedPolyline);
 
                 setRouteCoords(decodedCoords);
+
+                const distanceInMeters = route.summary.distance;
+                const distanceInKm = (distanceInMeters / 1000).toFixed(2);
+                setRouteDistance(distanceInKm);
             } else {
                 console.error('API не вернуло корректные данные:', response.data);
             }
@@ -119,6 +126,7 @@ const LocationPicker = () => {
             console.error('Ошибка при получении маршрута:', error);
         }
     };
+
 
     const LocationMarker = () => {
         useMapEvents({
@@ -148,6 +156,11 @@ const LocationPicker = () => {
                     placeholder="Куда отвезти?"
                     className="w-full p-2 border rounded text-black placeholder-gray-500 focus:outline-none"
                 />
+                {routeDistance && (
+                    <div className="mt-2 text-black">
+                        Расстояние: {routeDistance} км
+                    </div>
+                )}
             </div>
 
             <div className="relative w-full h-screen">
@@ -155,7 +168,7 @@ const LocationPicker = () => {
                     center={[51.505, -0.09]} // Исходное положение
                     zoom={13}
                     className="w-full h-full"
-                    style={{ marginTop: '8rem' }} // Отступ карты вниз на высоту инпутов
+                    style={{ marginTop: '10rem' }} // Отступ карты вниз на высоту инпутов
                     whenCreated={mapInstance => { mapRef.current = mapInstance }}
                 >
                     <TileLayer
@@ -181,7 +194,7 @@ const LocationPicker = () => {
                         />
                     )}
                     {routeCoords && (
-                        <Polyline positions={routeCoords} color="blue" />
+                        <Polyline positions={routeCoords} color="green" />
                     )}
                     <LocationMarker />
                     <MapUpdater location={userLocation} />
