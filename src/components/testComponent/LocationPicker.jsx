@@ -27,7 +27,7 @@ const LocationPicker = () => {
     const [pickupCoords, setPickupCoords] = useState(null);
     const [dropoffCoords, setDropoffCoords] = useState(null);
     const [routeCoords, setRouteCoords] = useState(null);
-    const [routeDistance, setRouteDistance] = useState(null); // Состояние для хранения расстояния
+    const [routeDistance, setRouteDistance] = useState(null);
     const [userLocation, setUserLocation] = useState(null);
     const mapRef = useRef(null); // Ссылка на экземпляр карты
 
@@ -42,10 +42,16 @@ const LocationPicker = () => {
     const MapUpdater = () => {
         const map = useMap();
         useEffect(() => {
-            if (pickupCoords && map) {
-                map.setView(pickupCoords, 15); // Устанавливаем центр карты и уровень зума
+            if (pickupCoords && dropoffCoords) {
+                const bounds = L.latLngBounds([pickupCoords, dropoffCoords]);
+                if (routeCoords) {
+                    bounds.extend(routeCoords.map(coord => [coord[0], coord[1]]));
+                }
+                map.fitBounds(bounds, { padding: [50, 50] }); // Устанавливаем границы карты с отступами
+            } else if (pickupCoords) {
+                map.setView(pickupCoords, 15);
             }
-        }, [pickupCoords, map]);
+        }, [pickupCoords, dropoffCoords, routeCoords, map]);
         return null;
     };
 
@@ -74,8 +80,7 @@ const LocationPicker = () => {
     }, [pickupCoords, dropoffCoords]);
 
     const fetchAddress = async (coords, setAddress) => {
-        const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${coords[0]}&lon=${coords[1
-            ]}&accept-language=ru`);
+        const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${coords[0]}&lon=${coords[1]}&accept-language=ru`);
         const data = await response.json();
         const formattedAddress = formatAddress(data.display_name);
         setAddress(formattedAddress);
@@ -98,7 +103,7 @@ const LocationPicker = () => {
             const response = await axios.post(
                 'https://api.openrouteservice.org/v2/directions/driving-car',
                 {
-                    coordinates: coordinates.map(coord => [coord[1], coord[0]]), // Инверсия координат (широта, долгота)
+                    coordinates: coordinates.map(coord => [coord[1], coord[0]]),
                 },
                 {
                     headers: {
@@ -131,7 +136,7 @@ const LocationPicker = () => {
             click(e) {
                 const coords = e.latlng;
                 setDropoffCoords([coords.lat, coords.lng]);
-                fetchAddress([coords.lat, coords.lng], setDropoff); // Получить адрес и установить в инпут dropoff
+                fetchAddress([coords.lat, coords.lng], setDropoff);
             }
         });
         return null;
@@ -165,10 +170,10 @@ const LocationPicker = () => {
 
             <div className="relative w-full h-screen">
                 <MapContainer
-                    center={[51.505, -0.09]} // Исходное положение
+                    center={[51.505, -0.09]}
                     zoom={13}
                     className="w-full h-full"
-                    style={{marginTop: '10rem'}} // Отступ карты вниз на высоту инпутов
+                    style={{marginTop: '10rem'}}
                     whenCreated={mapInstance => {
                         mapRef.current = mapInstance;
                     }}
