@@ -29,13 +29,6 @@ const LocationPicker = () => {
     const [userLocation, setUserLocation] = useState(null);
     const mapRef = useRef(null); // Ссылка на экземпляр карты
 
-    const handlePickupChange = (e) => {
-        setPickup(e.target.value);
-    };
-
-    const handleDropoffChange = (e) => {
-        setDropoff(e.target.value);
-    };
 
     const MapUpdater = () => {
         const map = useMap();
@@ -198,6 +191,7 @@ const LocationPicker = () => {
                     whenCreated={mapInstance => {
                         mapRef.current = mapInstance;
                     }}
+                    zoomControl={false}
                 >
                     <TileLayer
                         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
