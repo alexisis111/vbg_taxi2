@@ -4,18 +4,16 @@ import { MapContainer, TileLayer, Marker, useMap, useMapEvents, Polyline } from 
 import { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
 import polyline from '@mapbox/polyline';
-
-// Импорт иконок
-import markerIcon2x from 'leaflet/dist/images/marker-icon-2x.png';
-import markerIcon from 'leaflet/dist/images/marker-icon.png';
+import marker1 from '/assets/marker-icon-blue.png';
+import marker2 from '/assets/marker-icon-green.png';
 import markerShadow from 'leaflet/dist/images/marker-shadow.png';
 
 // Fix for missing marker icons
 delete L.Icon.Default.prototype._getIconUrl;
 
 L.Icon.Default.mergeOptions({
-    iconRetinaUrl: markerIcon2x,
-    iconUrl: markerIcon,
+    iconRetinaUrl: marker1,
+    iconUrl: marker1,
     shadowUrl: markerShadow,
 });
 
@@ -88,8 +86,8 @@ const LocationPicker = () => {
 
     const formatAddress = (address) => {
         const parts = address.split(',').map(part => part.trim());
-        const [houseNumber, street, settlement] = parts;
-        return `${settlement}, ${street} ${houseNumber}`;
+        const [houseNumber, street] = parts;
+        return `${street}, ${houseNumber}`;
     };
 
     const handleMarkerDrag = (e, setCoords, setAddress) => {
@@ -142,25 +140,48 @@ const LocationPicker = () => {
         return null;
     };
 
+    // Создаем кастомный маркер для второго маркера
+    const dropoffIcon = new L.Icon({
+        iconUrl: marker2,
+        iconSize: [25, 41], // Укажите размеры иконки
+        iconAnchor: [12, 41], // Позиция "якоря" (точка, где иконка касается карты)
+        popupAnchor: [1, -34], // Позиция попапа относительно маркера
+        shadowUrl: markerShadow, // Если у вас есть тень для маркера
+        shadowSize: [41, 41], // Размер тени
+        shadowAnchor: [12, 41] // Позиция "якоря" тени
+    });
+
     return (
         <>
             <div className="absolute top-0 left-0 w-full p-4 z-10 bg-white bg-opacity-90 shadow-md">
                 <div className="">
-                    <input
-                        type="text"
-                        value={pickup}
-                        onChange={handlePickupChange}
-                        placeholder="Откуда вас забрать?"
-                        className="w-full p-3 mb-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-700 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    />
-                    <input
-                        type="text"
-                        value={dropoff}
-                        onChange={handleDropoffChange}
-                        placeholder="Куда отвезти?"
-                        className="w-full p-3 border border-gray-300 rounded-lg bg-gray-50 text-gray-700 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    />
+                    <div className="flex items-center mb-4">
+                        <img src={marker1} alt="Marker 1" className="w-6 h-8 mr-2"/> {/* Размеры и отступ */}
+                        <span className="text-gray-700 text-sm font-bold mr-2">Точка А:</span>
+                        <input
+                            id="pickup"
+                            type="text"
+                            value={pickup}
+                            placeholder="Откуда вас забрать?"
+                            className="flex-grow p-3 border border-gray-300 rounded-lg bg-gray-50 text-gray-700 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            readOnly
+                        />
+                    </div>
+                    <div className="flex items-center">
+                        <img src={marker2} alt="Marker 2" className="w-6 h-8 mr-2"/> {/* Размеры и отступ */}
+                        <span className="text-gray-700 text-sm font-bold mr-2">Точка Б:</span>
+                        <input
+                            id="dropoff"
+                            type="text"
+                            value={dropoff}
+                            placeholder="Куда отвезти?"
+                            className="flex-grow p-3 border border-gray-300 rounded-lg bg-gray-50 text-gray-700 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            readOnly
+                        />
+                    </div>
                 </div>
+
+
                 {routeDistance && (
                     <div className="mt-2 text-black">
                         Расстояние: {routeDistance} км
@@ -170,10 +191,10 @@ const LocationPicker = () => {
 
             <div className="relative w-full h-screen">
                 <MapContainer
-                    center={[51.505, -0.09]}
+                    center={[60.7076, 28.7528]}
                     zoom={13}
                     className="w-full h-full"
-                    style={{marginTop: '10rem'}}
+                    style={{marginTop: '11rem'}}
                     whenCreated={mapInstance => {
                         mapRef.current = mapInstance;
                     }}
@@ -195,6 +216,7 @@ const LocationPicker = () => {
                         <Marker
                             position={dropoffCoords}
                             draggable={true}
+                            icon={dropoffIcon} // Используем кастомную иконку для второго маркера
                             eventHandlers={{
                                 dragend: (e) => handleMarkerDrag(e, setDropoffCoords, setDropoff),
                             }}
