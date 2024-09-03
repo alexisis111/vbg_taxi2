@@ -39,13 +39,13 @@ const LocationPicker = () => {
         setDropoff(e.target.value);
     };
 
-    const MapUpdater = ({ location }) => {
+    const MapUpdater = () => {
         const map = useMap();
         useEffect(() => {
-            if (location && map) {
-                map.setView(location, 15);
+            if (pickupCoords && map) {
+                map.setView(pickupCoords, 15); // Устанавливаем центр карты и уровень зума
             }
-        }, [location, map]);
+        }, [pickupCoords, map]);
         return null;
     };
 
@@ -74,7 +74,8 @@ const LocationPicker = () => {
     }, [pickupCoords, dropoffCoords]);
 
     const fetchAddress = async (coords, setAddress) => {
-        const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${coords[0]}&lon=${coords[1]}&accept-language=ru`);
+        const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${coords[0]}&lon=${coords[1
+            ]}&accept-language=ru`);
         const data = await response.json();
         const formattedAddress = formatAddress(data.display_name);
         setAddress(formattedAddress);
@@ -94,8 +95,6 @@ const LocationPicker = () => {
 
     const getRoute = async (coordinates) => {
         try {
-            //console.log("Coordinates:", coordinates); // Добавлено для отладки
-
             const response = await axios.post(
                 'https://api.openrouteservice.org/v2/directions/driving-car',
                 {
@@ -127,7 +126,6 @@ const LocationPicker = () => {
         }
     };
 
-
     const LocationMarker = () => {
         useMapEvents({
             click(e) {
@@ -142,20 +140,22 @@ const LocationPicker = () => {
     return (
         <>
             <div className="absolute top-0 left-0 w-full p-4 z-10 bg-white bg-opacity-90 shadow-md">
-                <input
-                    type="text"
-                    value={pickup}
-                    onChange={handlePickupChange}
-                    placeholder="Откуда вас забрать?"
-                    className="w-full p-2 mb-2 border rounded text-black placeholder-gray-500 focus:outline-none"
-                />
-                <input
-                    type="text"
-                    value={dropoff}
-                    onChange={handleDropoffChange}
-                    placeholder="Куда отвезти?"
-                    className="w-full p-2 border rounded text-black placeholder-gray-500 focus:outline-none"
-                />
+                <div className="">
+                    <input
+                        type="text"
+                        value={pickup}
+                        onChange={handlePickupChange}
+                        placeholder="Откуда вас забрать?"
+                        className="w-full p-3 mb-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-700 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                    <input
+                        type="text"
+                        value={dropoff}
+                        onChange={handleDropoffChange}
+                        placeholder="Куда отвезти?"
+                        className="w-full p-3 border border-gray-300 rounded-lg bg-gray-50 text-gray-700 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                </div>
                 {routeDistance && (
                     <div className="mt-2 text-black">
                         Расстояние: {routeDistance} км
@@ -168,8 +168,10 @@ const LocationPicker = () => {
                     center={[51.505, -0.09]} // Исходное положение
                     zoom={13}
                     className="w-full h-full"
-                    style={{ marginTop: '10rem' }} // Отступ карты вниз на высоту инпутов
-                    whenCreated={mapInstance => { mapRef.current = mapInstance }}
+                    style={{marginTop: '10rem'}} // Отступ карты вниз на высоту инпутов
+                    whenCreated={mapInstance => {
+                        mapRef.current = mapInstance;
+                    }}
                 >
                     <TileLayer
                         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
@@ -197,7 +199,7 @@ const LocationPicker = () => {
                         <Polyline positions={routeCoords} color="green" />
                     )}
                     <LocationMarker />
-                    <MapUpdater location={userLocation} />
+                    <MapUpdater />
                 </MapContainer>
             </div>
         </>
