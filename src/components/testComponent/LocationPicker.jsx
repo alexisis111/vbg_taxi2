@@ -151,8 +151,7 @@ const LocationPicker = () => {
             <div className="absolute top-0 left-0 w-full p-4 z-10 bg-white bg-opacity-90 shadow-md">
                 <div className="">
                     <div className="flex items-center mb-4">
-                        <img src={marker1} alt="Marker 1" className="w-6 h-9 mr-2"/> {/* Размеры и отступ */}
-                        <span className="text-gray-700 text-sm font-bold mr-2">Точка А:</span>
+                        <img src={marker1} alt="Marker 1" className="w-6 h-9 mr-4"/> {/* Размеры и отступ */}
                         <input
                             id="pickup"
                             type="text"
@@ -163,8 +162,7 @@ const LocationPicker = () => {
                         />
                     </div>
                     <div className="flex items-center">
-                        <img src={marker2} alt="Marker 2" className="w-6 h-9 mr-2"/> {/* Размеры и отступ */}
-                        <span className="text-gray-700 text-sm font-bold mr-2">Точка Б:</span>
+                        <img src={marker2} alt="Marker 2" className="w-6 h-9 mr-4"/> {/* Размеры и отступ */}
                         <input
                             id="dropoff"
                             type="text"
@@ -175,13 +173,6 @@ const LocationPicker = () => {
                         />
                     </div>
                 </div>
-
-
-                {routeDistance && (
-                    <div className="mt-2 text-black">
-                        Расстояние: {routeDistance} км
-                    </div>
-                )}
             </div>
 
             <div className="relative">
@@ -189,7 +180,7 @@ const LocationPicker = () => {
                     center={[60.7076, 28.7528]}
                     zoom={13}
                     className="w-full h-96"
-                    style={{marginTop: '11rem'}}
+                    style={{marginTop: '9rem'}}
                     whenCreated={mapInstance => {
                         mapRef.current = mapInstance;
                     }}
@@ -254,6 +245,12 @@ const LocationPicker = () => {
                     </div>
                 </div>
             </div>
+
+            {routeDistance && (
+                <div className="mt-2 text-black">
+                    Расстояние: {routeDistance} км
+                </div>
+            )}
 
         </>
     );
