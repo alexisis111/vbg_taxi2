@@ -7,9 +7,9 @@ import polyline from '@mapbox/polyline';
 import marker1 from '/assets/marker-icon-blue.png';
 import marker2 from '/assets/marker-icon-green.png';
 import markerShadow from 'leaflet/dist/images/marker-shadow.png';
-import ecoImg from '/assets/eco.png'
-import comfImg from '/assets/comf.png'
-import kidsImg from '/assets/kids.png'
+import ecoImg from '/assets/eco1.png'
+import comfImg from '/assets/comf1.png'
+import kidsImg from '/assets/kids1.png'
 // Fix for missing marker icons
 delete L.Icon.Default.prototype._getIconUrl;
 
@@ -59,8 +59,61 @@ const LocationPicker = () => {
         return Math.round(totalPrice.toFixed(1));
     };
 
+    const calculatePriceComf = (distance) => {
+        let basePrice;
 
+        // Рассчитываем базовую цену
+        if (distance <= 2) {
+            basePrice = 170;
+            console.log(`Расстояние ${distance} км: Базовая цена 170 рублей`);
+        } else {
+            basePrice = 170 + (distance - 2) * 20;
+            console.log(`Расстояние ${distance} км: Базовая цена 170 + (${distance} - 2) * 20 = ${basePrice} рублей`);
+        }
 
+        // Рассчитываем дополнительную надбавку
+        let additionalCharge = 0;
+        if (distance > 10) {
+            const extraDistance = distance - 10;
+            const additionalBlocks = Math.floor(extraDistance / 10);
+            additionalCharge = additionalBlocks * 100;
+            console.log(`Расстояние ${distance} км: Дополнительная надбавка ${additionalBlocks} * 100 = ${additionalCharge} рублей`);
+        }
+
+        // Итоговая стоимость
+        const totalPrice = basePrice + additionalCharge;
+        console.log(`Итоговая стоимость: ${totalPrice.toFixed(1)} рублей`);
+
+        return Math.round(totalPrice.toFixed(1));
+    };
+
+    const calculatePriceKids = (distance) => {
+        let basePrice;
+
+        // Рассчитываем базовую цену
+        if (distance <= 2) {
+            basePrice = 190;
+            console.log(`Расстояние ${distance} км: Базовая цена 190 рублей`);
+        } else {
+            basePrice = 190 + (distance - 2) * 20;
+            console.log(`Расстояние ${distance} км: Базовая цена 190 + (${distance} - 2) * 20 = ${basePrice} рублей`);
+        }
+
+        // Рассчитываем дополнительную надбавку
+        let additionalCharge = 0;
+        if (distance > 10) {
+            const extraDistance = distance - 10;
+            const additionalBlocks = Math.floor(extraDistance / 10);
+            additionalCharge = additionalBlocks * 100;
+            console.log(`Расстояние ${distance} км: Дополнительная надбавка ${additionalBlocks} * 100 = ${additionalCharge} рублей`);
+        }
+
+        // Итоговая стоимость
+        const totalPrice = basePrice + additionalCharge;
+        console.log(`Итоговая стоимость: ${totalPrice.toFixed(1)} рублей`);
+
+        return Math.round(totalPrice.toFixed(1));
+    };
 
     const MapUpdater = () => {
         const map = useMap();
@@ -178,7 +231,7 @@ const LocationPicker = () => {
 
     return (
         <>
-            <div className="absolute top-0 left-0 w-full p-4 z-10 bg-white bg-opacity-90 shadow-md">
+            <div className="absolute top-0 left-0 w-full p-2 z-10 bg-white bg-opacity-90 shadow-md">
                 <div className="">
                     <div className="flex items-center mb-4">
                         <img src={marker1} alt="Marker 1" className="w-6 h-9 mr-4"/> {/* Размеры и отступ */}
@@ -247,30 +300,30 @@ const LocationPicker = () => {
                 </MapContainer>
             </div>
 
-            <div className="container mx-auto py-2">
-                <div className="flex space-x-6 overflow-x-auto p-4">
+            <div className="container px-2 py-2">
+                <div className="flex space-x-3 overflow-x-auto p-4">
                     <div className="flex-shrink-0 bg-white shadow-2xl rounded-lg overflow-hidden w-1/2 ">
                         <img className="object-cover" src={ecoImg}
                              alt="Card Image 1"/>
-                        <div className="p-4">
+                        <div className="p-2">
                             <h3 className="text-xl font-bold mb-2">Эконом</h3>
                             <p className="text-gray-600">{`Цена: ${routeDistance ? calculatePriceEco(routeDistance) + ' рублей' : 'Появится после указания маршрута'}`}</p>
                         </div>
                     </div>
                     <div className="flex-shrink-0 bg-white shadow-2xl rounded-lg overflow-hidden w-1/2">
-                        <img className="object-cover mt-1" src={comfImg}
+                        <img className="object-cover mt-0.5" src={comfImg}
                              alt="Card Image 2"/>
-                        <div className="p-4">
+                        <div className="p-2">
                             <h3 className="text-xl font-bold mb-2">Комфорт</h3>
-                            <p className="text-gray-600">{`Цена: ${routeDistance ? calculatePriceEco(routeDistance) + ' рублей' : 'Появится после указания маршрута'}`}</p>
+                            <p className="text-gray-600">{`Цена: ${routeDistance ? calculatePriceComf(routeDistance) + ' рублей' : 'Появится после указания маршрута'}`}</p>
                         </div>
                     </div>
                     <div className="flex-shrink-0 bg-white shadow-2xl rounded-lg overflow-hidden w-1/2">
-                        <img className="object-cover mt-1" src={kidsImg}
+                        <img className="object-cover mt-0.5" src={kidsImg}
                              alt="Card Image 3"/>
-                        <div className="p-4">
+                        <div className="p-2">
                             <h3 className="text-xl font-bold mb-2">Детский</h3>
-                            <p className="text-gray-600">{`Цена: ${routeDistance ? calculatePriceEco(routeDistance) + ' рублей' : 'Появится после указания маршрута'}`}</p>
+                            <p className="text-gray-600">{`Цена: ${routeDistance ? calculatePriceKids(routeDistance) + ' рублей' : 'Появится после указания маршрута'}`}</p>
                         </div>
                     </div>
                 </div>
