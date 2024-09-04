@@ -226,9 +226,9 @@ const LocationPicker = () => {
                 </MapContainer>
             </div>
 
-            <div className="container mx-auto px-2 py-4">
+            <div className="container mx-auto py-2">
                 <div className="flex space-x-6 overflow-x-auto p-4">
-                    <div className="flex-shrink-0 bg-white shadow-2xl rounded-lg overflow-hidden w-64 ">
+                    <div className="flex-shrink-0 bg-white shadow-2xl rounded-lg overflow-hidden w-1/2 ">
                         <img className="object-cover" src={ecoImg}
                              alt="Card Image 1"/>
                         <div className="p-4">
@@ -236,7 +236,7 @@ const LocationPicker = () => {
                             <p className="text-gray-600">{`Тут выводим стоимость`}</p>
                         </div>
                     </div>
-                    <div className="flex-shrink-0 bg-white shadow-2xl rounded-lg overflow-hidden w-64">
+                    <div className="flex-shrink-0 bg-white shadow-2xl rounded-lg overflow-hidden w-1/2">
                         <img className="object-cover mt-1" src={comfImg}
                              alt="Card Image 2"/>
                         <div className="p-4">
@@ -244,7 +244,7 @@ const LocationPicker = () => {
                             <p className="text-gray-600">{`Тут выводим стоимость`}</p>
                         </div>
                     </div>
-                    <div className="flex-shrink-0 bg-white shadow-2xl rounded-lg overflow-hidden w-64">
+                    <div className="flex-shrink-0 bg-white shadow-2xl rounded-lg overflow-hidden w-1/2">
                         <img className="object-cover mt-1" src={kidsImg}
                              alt="Card Image 3"/>
                         <div className="p-4">
