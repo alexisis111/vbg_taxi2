@@ -182,11 +182,11 @@ const LocationPicker = () => {
                 )}
             </div>
 
-            <div className="relative w-full h-screen">
+            <div className="relative">
                 <MapContainer
                     center={[60.7076, 28.7528]}
                     zoom={13}
-                    className="w-full h-full"
+                    className="w-full h-96"
                     style={{marginTop: '11rem'}}
                     whenCreated={mapInstance => {
                         mapRef.current = mapInstance;
