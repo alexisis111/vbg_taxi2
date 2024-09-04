@@ -32,15 +32,34 @@ const LocationPicker = () => {
     const mapRef = useRef(null); // Ссылка на экземпляр карты
 
     const calculatePrice = (distance) => {
-        let price;
+        let basePrice;
+
+        // Рассчитываем базовую цену
         if (distance <= 2) {
-            price = 150;
+            basePrice = 150;
+            console.log(`Расстояние ${distance} км: Базовая цена 150 рублей`);
         } else {
-            price = 150 + (distance - 2) * 20;
+            basePrice = 150 + (distance - 2) * 20;
+            console.log(`Расстояние ${distance} км: Базовая цена 150 + (${distance} - 2) * 20 = ${basePrice} рублей`);
         }
-        // Округляем до ближайшего целого числа
-        return Math.round(price);
+
+        // Рассчитываем дополнительную надбавку
+        let additionalCharge = 0;
+        if (distance > 10) {
+            const extraDistance = distance - 10;
+            const additionalBlocks = Math.floor(extraDistance / 10);
+            additionalCharge = additionalBlocks * 100;
+            console.log(`Расстояние ${distance} км: Дополнительная надбавка ${additionalBlocks} * 100 = ${additionalCharge} рублей`);
+        }
+
+        // Итоговая стоимость
+        const totalPrice = basePrice + additionalCharge;
+        console.log(`Итоговая стоимость: ${totalPrice.toFixed(1)} рублей`);
+
+        return totalPrice.toFixed(1);
     };
+
+
 
 
     const MapUpdater = () => {
