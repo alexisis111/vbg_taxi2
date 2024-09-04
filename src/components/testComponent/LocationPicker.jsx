@@ -7,7 +7,9 @@ import polyline from '@mapbox/polyline';
 import marker1 from '/assets/marker-icon-blue.png';
 import marker2 from '/assets/marker-icon-green.png';
 import markerShadow from 'leaflet/dist/images/marker-shadow.png';
-
+import ecoImg from '/assets/eco.png'
+import comfImg from '/assets/comf.png'
+import kidsImg from '/assets/kids.png'
 // Fix for missing marker icons
 delete L.Icon.Default.prototype._getIconUrl;
 
@@ -149,7 +151,7 @@ const LocationPicker = () => {
             <div className="absolute top-0 left-0 w-full p-4 z-10 bg-white bg-opacity-90 shadow-md">
                 <div className="">
                     <div className="flex items-center mb-4">
-                        <img src={marker1} alt="Marker 1" className="w-6 h-8 mr-2"/> {/* Размеры и отступ */}
+                        <img src={marker1} alt="Marker 1" className="w-6 h-9 mr-2"/> {/* Размеры и отступ */}
                         <span className="text-gray-700 text-sm font-bold mr-2">Точка А:</span>
                         <input
                             id="pickup"
@@ -161,7 +163,7 @@ const LocationPicker = () => {
                         />
                     </div>
                     <div className="flex items-center">
-                        <img src={marker2} alt="Marker 2" className="w-6 h-8 mr-2"/> {/* Размеры и отступ */}
+                        <img src={marker2} alt="Marker 2" className="w-6 h-9 mr-2"/> {/* Размеры и отступ */}
                         <span className="text-gray-700 text-sm font-bold mr-2">Точка Б:</span>
                         <input
                             id="dropoff"
@@ -217,12 +219,42 @@ const LocationPicker = () => {
                         />
                     )}
                     {routeCoords && (
-                        <Polyline positions={routeCoords} color="green" />
+                        <Polyline positions={routeCoords} color="green"/>
                     )}
-                    <LocationMarker />
-                    <MapUpdater />
+                    <LocationMarker/>
+                    <MapUpdater/>
                 </MapContainer>
             </div>
+
+            <div className="container mx-auto px-2 py-4">
+                <div className="flex space-x-6 overflow-x-auto p-4">
+                    <div className="flex-shrink-0 bg-white shadow-2xl rounded-lg overflow-hidden w-64 ">
+                        <img className="object-cover" src={ecoImg}
+                             alt="Card Image 1"/>
+                        <div className="p-4">
+                            <h3 className="text-xl font-bold mb-2">Эконом</h3>
+                            <p className="text-gray-600">{`Тут выводим стоимость`}</p>
+                        </div>
+                    </div>
+                    <div className="flex-shrink-0 bg-white shadow-2xl rounded-lg overflow-hidden w-64">
+                        <img className="object-cover mt-1" src={comfImg}
+                             alt="Card Image 2"/>
+                        <div className="p-4">
+                            <h3 className="text-xl font-bold mb-2">Комфорт</h3>
+                            <p className="text-gray-600">{`Тут выводим стоимость`}</p>
+                        </div>
+                    </div>
+                    <div className="flex-shrink-0 bg-white shadow-2xl rounded-lg overflow-hidden w-64">
+                        <img className="object-cover mt-1" src={kidsImg}
+                             alt="Card Image 3"/>
+                        <div className="p-4">
+                            <h3 className="text-xl font-bold mb-2">Детский</h3>
+                            <p className="text-gray-600">{`Тут выводим стоимость`}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
         </>
     );
 };
