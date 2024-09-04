@@ -31,6 +31,17 @@ const LocationPicker = () => {
     const [userLocation, setUserLocation] = useState(null);
     const mapRef = useRef(null); // Ссылка на экземпляр карты
 
+    const calculatePrice = (distance) => {
+        let price;
+        if (distance <= 2) {
+            price = 150;
+        } else {
+            price = 150 + (distance - 2) * 20;
+        }
+        // Округляем до ближайшего целого числа
+        return Math.round(price);
+    };
+
 
     const MapUpdater = () => {
         const map = useMap();
@@ -224,7 +235,7 @@ const LocationPicker = () => {
                              alt="Card Image 1"/>
                         <div className="p-4">
                             <h3 className="text-xl font-bold mb-2">Эконом</h3>
-                            <p className="text-gray-600">{`Тут выводим стоимость`}</p>
+                            <p className="text-gray-600">{`Цена: ${routeDistance ? calculatePrice(routeDistance) + ' рублей' : 'Появится после указания маршрута'}`}</p>
                         </div>
                     </div>
                     <div className="flex-shrink-0 bg-white shadow-2xl rounded-lg overflow-hidden w-1/2">
@@ -232,7 +243,7 @@ const LocationPicker = () => {
                              alt="Card Image 2"/>
                         <div className="p-4">
                             <h3 className="text-xl font-bold mb-2">Комфорт</h3>
-                            <p className="text-gray-600">{`Тут выводим стоимость`}</p>
+                            <p className="text-gray-600">{`Цена: ${routeDistance ? calculatePrice(routeDistance) + ' рублей' : 'Появится после указания маршрута'}`}</p>
                         </div>
                     </div>
                     <div className="flex-shrink-0 bg-white shadow-2xl rounded-lg overflow-hidden w-1/2">
@@ -240,7 +251,7 @@ const LocationPicker = () => {
                              alt="Card Image 3"/>
                         <div className="p-4">
                             <h3 className="text-xl font-bold mb-2">Детский</h3>
-                            <p className="text-gray-600">{`Тут выводим стоимость`}</p>
+                            <p className="text-gray-600">{`Цена: ${routeDistance ? calculatePrice(routeDistance) + ' рублей' : 'Появится после указания маршрута'}`}</p>
                         </div>
                     </div>
                 </div>
@@ -251,7 +262,6 @@ const LocationPicker = () => {
                     Расстояние: {routeDistance} км
                 </div>
             )}
-
         </>
     );
 };
