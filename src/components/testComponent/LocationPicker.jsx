@@ -10,8 +10,8 @@ import markerShadow from 'leaflet/dist/images/marker-shadow.png';
 import ecoImg from '/assets/eco1.png'
 import comfImg from '/assets/comf1.png'
 import kidsImg from '/assets/kids1.png'
-import '../../App.css'
-import Joyride from 'react-joyride'; // Импортируем Joyride
+import Tour from 'reactour';
+
 
 
 // Fix for missing marker icons
@@ -34,27 +34,16 @@ const LocationPicker = () => {
     const [routeDistance, setRouteDistance] = useState(null);
     const [userLocation, setUserLocation] = useState(null);
     const mapRef = useRef(null); // Ссылка на экземпляр карты
-    const [tourIsOpen, setTourIsOpen] = useState(true); // Управление состоянием для открытия/закрытия тура
+    const [isTourOpen, setIsTourOpen] = useState(true);
 
 
     const steps = [
         {
-            target: '.leaflet-container', // Это контейнер карты, измените класс в зависимости от вашего CSS
-            content: 'Свайпни вверх чтобы начать',
-            placement: 'top',
+            selector: '.leaflet-container',
+            content: 'Это карта. Здесь вы можете выбрать места для посадки и высадки.',
         },
-        {
-            target: '.leaflet-container', // Это тот же элемент, что и выше
-            content: 'Чтобы указать маршрут, добавьте второй маркер на карту',
-            placement: 'top',
-        },
-        {
-            target: '.container', // Это контейнер с карточками, измените класс в зависимости от вашего CSS
-            content: 'После выбора маршрута, выберите тариф',
-            placement: 'bottom',
-        },
+        // Остальные шаги
     ];
-
 
     const calculatePriceEco = (distance) => {
         let basePrice;
@@ -256,24 +245,11 @@ const LocationPicker = () => {
 
     return (
         <>
-            <Joyride
+            <Tour
                 steps={steps}
-                continuous={true}
-                scrollToFirstStep={true}
-                showProgress={true}
-                showSkipButton={true}
-                styles={{
-                    options: {
-                        zIndex: 10000, // Обеспечиваем, что Joyride будет поверх всех элементов
-                    },
-                }}
-                run={tourIsOpen}
-                callback={(data) => {
-                    const { status } = data;
-                    if (status === 'finished' || status === 'skipped') {
-                        setTourIsOpen(false); // Закрываем тур после завершения или пропуска
-                    }
-                }}
+                isOpen={isTourOpen}
+                onRequestClose={() => setIsTourOpen(false)}
+                showButtons={true}
             />
             <div className="">
                 <MapContainer
@@ -318,7 +294,7 @@ const LocationPicker = () => {
             <div className="w-full p-2 z-10 bg-white bg-opacity-90 shadow-md">
                 <div className="">
                     <div className="flex items-center mb-4">
-                        <img src={marker1} alt="Marker 1" className="w-6 h-9 mr-2"/> {/* Размеры и отступ */}
+                        <img src={marker1} alt="Marker 1" className="w-6 h-9 mx-1"/> {/* Размеры и отступ */}
                         <input
                             id="pickup"
                             type="text"
@@ -329,7 +305,7 @@ const LocationPicker = () => {
                         />
                     </div>
                     <div className="flex items-center">
-                        <img src={marker2} alt="Marker 2" className="w-6 h-9 mr-2"/> {/* Размеры и отступ */}
+                        <img src={marker2} alt="Marker 2" className="w-6 h-9 mx-1"/> {/* Размеры и отступ */}
                         <input
                             id="dropoff"
                             type="text"
@@ -341,8 +317,8 @@ const LocationPicker = () => {
                     </div>
                 </div>
             </div>
-            <div className="container px-1 py-2">
-                <div className="flex space-x-3 overflow-x-auto py-4">
+            <div className="container px-2 py-2">
+                <div className="flex space-x-3 overflow-x-auto p-4">
                     <div className="flex-shrink-0 bg-white shadow-2xl rounded-lg overflow-hidden w-1/2 ">
                         <img className="object-cover" src={ecoImg}
                              alt="Card Image 1"/>
