@@ -231,39 +231,11 @@ const LocationPicker = () => {
 
     return (
         <>
-            <div className="absolute top-0 left-0 w-full p-2 z-10 bg-white bg-opacity-90 shadow-md">
-                <div className="">
-                    <div className="flex items-center mb-4">
-                        <img src={marker1} alt="Marker 1" className="w-6 h-9 mr-4"/> {/* Размеры и отступ */}
-                        <input
-                            id="pickup"
-                            type="text"
-                            value={pickup}
-                            placeholder="Откуда вас забрать?"
-                            className="flex-grow p-3 border border-gray-300 rounded-lg bg-gray-50 text-gray-700 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                            readOnly
-                        />
-                    </div>
-                    <div className="flex items-center">
-                        <img src={marker2} alt="Marker 2" className="w-6 h-9 mr-4"/> {/* Размеры и отступ */}
-                        <input
-                            id="dropoff"
-                            type="text"
-                            value={dropoff}
-                            placeholder="Куда отвезти?"
-                            className="flex-grow p-3 border border-gray-300 rounded-lg bg-gray-50 text-gray-700 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                            readOnly
-                        />
-                    </div>
-                </div>
-            </div>
-
-            <div className="relative">
+            <div className="">
                 <MapContainer
                     center={[60.7076, 28.7528]}
                     zoom={13}
                     className="w-full h-96"
-                    style={{marginTop: '9rem'}}
                     whenCreated={mapInstance => {
                         mapRef.current = mapInstance;
                     }}
@@ -299,7 +271,32 @@ const LocationPicker = () => {
                     <MapUpdater/>
                 </MapContainer>
             </div>
-
+            <div className="w-full p-2 z-10 bg-white bg-opacity-90 shadow-md">
+                <div className="">
+                    <div className="flex items-center mb-4">
+                        <img src={marker1} alt="Marker 1" className="w-6 h-9 mr-2"/> {/* Размеры и отступ */}
+                        <input
+                            id="pickup"
+                            type="text"
+                            value={pickup}
+                            placeholder="Откуда вас забрать?"
+                            className="flex-grow p-3 border border-gray-300 rounded-lg bg-gray-50 text-gray-700 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            readOnly
+                        />
+                    </div>
+                    <div className="flex items-center">
+                        <img src={marker2} alt="Marker 2" className="w-6 h-9 mr-2"/> {/* Размеры и отступ */}
+                        <input
+                            id="dropoff"
+                            type="text"
+                            value={dropoff}
+                            placeholder="Куда отвезти?"
+                            className="flex-grow p-3 border border-gray-300 rounded-lg bg-gray-50 text-gray-700 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            readOnly
+                        />
+                    </div>
+                </div>
+            </div>
             <div className="container px-2 py-2">
                 <div className="flex space-x-3 overflow-x-auto p-4">
                     <div className="flex-shrink-0 bg-white shadow-2xl rounded-lg overflow-hidden w-1/2 ">
