@@ -7,12 +7,10 @@ import polyline from '@mapbox/polyline';
 import marker1 from '/assets/marker-icon-blue.png';
 import marker2 from '/assets/marker-icon-green.png';
 import markerShadow from 'leaflet/dist/images/marker-shadow.png';
-import ecoImg from '/assets/eco1.png'
-import comfImg from '/assets/comf1.png'
-import kidsImg from '/assets/kids1.png'
+import ecoImg from '/assets/eco1.png';
+import comfImg from '/assets/comf1.png';
+import kidsImg from '/assets/kids1.png';
 import Tour from 'reactour';
-
-
 
 // Fix for missing marker icons
 delete L.Icon.Default.prototype._getIconUrl;
@@ -34,98 +32,98 @@ const LocationPicker = () => {
     const [routeDistance, setRouteDistance] = useState(null);
     const [userLocation, setUserLocation] = useState(null);
     const mapRef = useRef(null); // Ссылка на экземпляр карты
-    const [isTourOpen, setIsTourOpen] = useState(true);
+    const [isTourOpen, setIsTourOpen] = useState(false);
 
-
+    // Определяем шаги тура
     const steps = [
         {
-            selector: '.leaflet-container',
+            selector: '.begin',
             content: 'Это карта. Здесь вы можете выбрать места для посадки и высадки.',
         },
-        // Остальные шаги
+        {
+            selector: '#pickup',
+            content: 'Введите адрес, откуда вас забрать.',
+        },
+        {
+            selector: '#dropoff',
+            content: 'Введите адрес, куда вас нужно отвезти.',
+        },
+        {
+            selector: '.flex-shrink-0',
+            content: 'Здесь вы видите различные варианты тарифов. Выберите подходящий для вас.',
+        },
+        {
+            selector: '.mt-2.text-black',
+            content: 'Это расстояние маршрута, которое вы выбрали.',
+        },
     ];
+
+    // Проверяем, был ли уже показан тур
+    useEffect(() => {
+        const tourShown = localStorage.getItem('tourShown');
+        if (!tourShown) {
+            setIsTourOpen(true);
+            localStorage.setItem('tourShown', 'true');
+        }
+    }, []);
 
     const calculatePriceEco = (distance) => {
         let basePrice;
 
-        // Рассчитываем базовую цену
         if (distance <= 2) {
             basePrice = 150;
-            console.log(`Расстояние ${distance} км: Базовая цена 150 рублей`);
         } else {
             basePrice = 150 + (distance - 2) * 20;
-            console.log(`Расстояние ${distance} км: Базовая цена 150 + (${distance} - 2) * 20 = ${basePrice} рублей`);
         }
 
-        // Рассчитываем дополнительную надбавку
         let additionalCharge = 0;
         if (distance > 10) {
             const extraDistance = distance - 10;
             const additionalBlocks = Math.floor(extraDistance / 10);
             additionalCharge = additionalBlocks * 100;
-            console.log(`Расстояние ${distance} км: Дополнительная надбавка ${additionalBlocks} * 100 = ${additionalCharge} рублей`);
         }
 
-        // Итоговая стоимость
         const totalPrice = basePrice + additionalCharge;
-        console.log(`Итоговая стоимость: ${totalPrice.toFixed(1)} рублей`);
-
         return Math.round(totalPrice.toFixed(1));
     };
 
     const calculatePriceComf = (distance) => {
         let basePrice;
 
-        // Рассчитываем базовую цену
         if (distance <= 2) {
             basePrice = 170;
-            console.log(`Расстояние ${distance} км: Базовая цена 170 рублей`);
         } else {
             basePrice = 170 + (distance - 2) * 20;
-            console.log(`Расстояние ${distance} км: Базовая цена 170 + (${distance} - 2) * 20 = ${basePrice} рублей`);
         }
 
-        // Рассчитываем дополнительную надбавку
         let additionalCharge = 0;
         if (distance > 10) {
             const extraDistance = distance - 10;
             const additionalBlocks = Math.floor(extraDistance / 10);
             additionalCharge = additionalBlocks * 100;
-            console.log(`Расстояние ${distance} км: Дополнительная надбавка ${additionalBlocks} * 100 = ${additionalCharge} рублей`);
         }
 
-        // Итоговая стоимость
         const totalPrice = basePrice + additionalCharge;
-        console.log(`Итоговая стоимость: ${totalPrice.toFixed(1)} рублей`);
-
         return Math.round(totalPrice.toFixed(1));
     };
 
     const calculatePriceKids = (distance) => {
         let basePrice;
 
-        // Рассчитываем базовую цену
         if (distance <= 2) {
             basePrice = 190;
-            console.log(`Расстояние ${distance} км: Базовая цена 190 рублей`);
         } else {
             basePrice = 190 + (distance - 2) * 20;
-            console.log(`Расстояние ${distance} км: Базовая цена 190 + (${distance} - 2) * 20 = ${basePrice} рублей`);
         }
 
-        // Рассчитываем дополнительную надбавку
         let additionalCharge = 0;
         if (distance > 10) {
             const extraDistance = distance - 10;
             const additionalBlocks = Math.floor(extraDistance / 10);
             additionalCharge = additionalBlocks * 100;
-            console.log(`Расстояние ${distance} км: Дополнительная надбавка ${additionalBlocks} * 100 = ${additionalCharge} рублей`);
         }
 
-        // Итоговая стоимость
         const totalPrice = basePrice + additionalCharge;
-        console.log(`Итоговая стоимость: ${totalPrice.toFixed(1)} рублей`);
-
         return Math.round(totalPrice.toFixed(1));
     };
 
@@ -137,7 +135,7 @@ const LocationPicker = () => {
                 if (routeCoords) {
                     bounds.extend(routeCoords.map(coord => [coord[0], coord[1]]));
                 }
-                map.fitBounds(bounds, { padding: [50, 50] }); // Устанавливаем границы карты с отступами
+                map.fitBounds(bounds, { padding: [50, 50] });
             } else if (pickupCoords) {
                 map.setView(pickupCoords, 15);
             }
@@ -232,24 +230,65 @@ const LocationPicker = () => {
         return null;
     };
 
-    // Создаем кастомный маркер для второго маркера
     const dropoffIcon = new L.Icon({
         iconUrl: marker2,
-        iconSize: [25, 41], // Укажите размеры иконки
-        iconAnchor: [12, 41], // Позиция "якоря" (точка, где иконка касается карты)
-        popupAnchor: [1, -34], // Позиция попапа относительно маркера
-        shadowUrl: markerShadow, // Если у вас есть тень для маркера
-        shadowSize: [41, 41], // Размер тени
-        shadowAnchor: [12, 41] // Позиция "якоря" тени
+        iconSize: [25, 41],
+        iconAnchor: [12, 41],
+        popupAnchor: [1, -34],
+        shadowUrl: markerShadow,
+        shadowSize: [41, 41],
+        shadowAnchor: [12, 41]
     });
 
     return (
         <>
+            <div className='begin'></div>
             <Tour
                 steps={steps}
                 isOpen={isTourOpen}
                 onRequestClose={() => setIsTourOpen(false)}
+                rounded={10}
                 showButtons={true}
+                showCloseButton={true}
+                lastStepNextButton={<button className="bg-blue-500 text-white px-4 py-2 rounded">Понятно</button>}
+                styles={{
+                    options: {
+                        zIndex: 10000,
+                        // Центрирование по центру экрана
+                        width: 'auto',
+                        maxWidth: '90%',
+                        margin: '0 auto',
+                        position: 'absolute',
+                        top: '50%',
+                        left: '50%',
+                        transform: 'translate(-50%, -50%)'
+                    },
+                    buttonNext: {
+                        backgroundColor: '#4A90E2',
+                        color: '#fff',
+                        borderRadius: '0.25rem',
+                        padding: '0.5rem 1rem',
+                        fontSize: '1rem',
+                    },
+                    buttonBack: {
+                        backgroundColor: '#ccc',
+                        color: '#000',
+                        borderRadius: '0.25rem',
+                        padding: '0.5rem 1rem',
+                        fontSize: '1rem',
+                    },
+                    tooltipContainer: {
+                        backgroundColor: '#fff',
+                        borderRadius: '0.5rem',
+                        boxShadow: '0 4px 8px rgba(0, 0, 0, 0.1)',
+                        padding: '1rem',
+                        maxWidth: '300px',
+                        fontSize: '0.875rem',
+                    },
+                    tooltipContent: {
+                        color: '#333',
+                    },
+                }}
             />
             <div className="">
                 <MapContainer
@@ -278,7 +317,7 @@ const LocationPicker = () => {
                         <Marker
                             position={dropoffCoords}
                             draggable={true}
-                            icon={dropoffIcon} // Используем кастомную иконку для второго маркера
+                            icon={dropoffIcon}
                             eventHandlers={{
                                 dragend: (e) => handleMarkerDrag(e, setDropoffCoords, setDropoff),
                             }}
@@ -294,7 +333,7 @@ const LocationPicker = () => {
             <div className="w-full p-2 z-10 bg-white bg-opacity-90 shadow-md">
                 <div className="">
                     <div className="flex items-center mb-4">
-                        <img src={marker1} alt="Marker 1" className="w-6 h-9 mx-1"/> {/* Размеры и отступ */}
+                        <img src={marker1} alt="Marker 1" className="w-6 h-9 mx-1"/>
                         <input
                             id="pickup"
                             type="text"
@@ -305,7 +344,7 @@ const LocationPicker = () => {
                         />
                     </div>
                     <div className="flex items-center">
-                        <img src={marker2} alt="Marker 2" className="w-6 h-9 mx-1"/> {/* Размеры и отступ */}
+                        <img src={marker2} alt="Marker 2" className="w-6 h-9 mx-1"/>
                         <input
                             id="dropoff"
                             type="text"
@@ -320,24 +359,21 @@ const LocationPicker = () => {
             <div className="container px-2 py-2">
                 <div className="flex space-x-3 overflow-x-auto p-4">
                     <div className="flex-shrink-0 bg-white shadow-2xl rounded-lg overflow-hidden w-1/2 ">
-                        <img className="object-cover" src={ecoImg}
-                             alt="Card Image 1"/>
+                        <img className="object-cover" src={ecoImg} alt="Card Image 1"/>
                         <div className="p-2">
                             <h3 className="text-xl font-bold mb-2">Эконом</h3>
                             <p className="text-gray-600">{`Цена: ${routeDistance ? calculatePriceEco(routeDistance) + ' рублей' : 'Появится после указания маршрута'}`}</p>
                         </div>
                     </div>
                     <div className="flex-shrink-0 bg-white shadow-2xl rounded-lg overflow-hidden w-1/2">
-                        <img className="object-cover mt-0.5" src={comfImg}
-                             alt="Card Image 2"/>
+                        <img className="object-cover mt-0.5" src={comfImg} alt="Card Image 2"/>
                         <div className="p-2">
                             <h3 className="text-xl font-bold mb-2">Комфорт</h3>
                             <p className="text-gray-600">{`Цена: ${routeDistance ? calculatePriceComf(routeDistance) + ' рублей' : 'Появится после указания маршрута'}`}</p>
                         </div>
                     </div>
                     <div className="flex-shrink-0 bg-white shadow-2xl rounded-lg overflow-hidden w-1/2">
-                        <img className="object-cover mt-0.5" src={kidsImg}
-                             alt="Card Image 3"/>
+                        <img className="object-cover mt-0.5" src={kidsImg} alt="Card Image 3"/>
                         <div className="p-2">
                             <h3 className="text-xl font-bold mb-2">Детский</h3>
                             <p className="text-gray-600">{`Цена: ${routeDistance ? calculatePriceKids(routeDistance) + ' рублей' : 'Появится после указания маршрута'}`}</p>
