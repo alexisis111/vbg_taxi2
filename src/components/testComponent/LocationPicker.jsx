@@ -274,7 +274,7 @@ const LocationPicker = () => {
             <div className="w-full p-2 z-10 bg-white bg-opacity-90 shadow-md">
                 <div className="">
                     <div className="flex items-center mb-4">
-                        <img src={marker1} alt="Marker 1" className="w-6 h-9 mr-2"/> {/* Размеры и отступ */}
+                        <img src={marker1} alt="Marker 1" className="w-6 h-9 mx-1"/> {/* Размеры и отступ */}
                         <input
                             id="pickup"
                             type="text"
@@ -285,7 +285,7 @@ const LocationPicker = () => {
                         />
                     </div>
                     <div className="flex items-center">
-                        <img src={marker2} alt="Marker 2" className="w-6 h-9 mr-2"/> {/* Размеры и отступ */}
+                        <img src={marker2} alt="Marker 2" className="w-6 h-9 mx-1"/> {/* Размеры и отступ */}
                         <input
                             id="dropoff"
                             type="text"
