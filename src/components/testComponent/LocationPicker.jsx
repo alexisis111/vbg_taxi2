@@ -58,13 +58,18 @@ const LocationPicker = () => {
         },
     ];
 
-    // Проверяем, был ли уже показан тур
+    // // Проверяем, был ли уже показан тур
+    // useEffect(() => {
+    //     const tourShown = localStorage.getItem('tourShown');
+    //     if (!tourShown) {
+    //         setIsTourOpen(true);
+    //         localStorage.setItem('tourShown', 'true');
+    //     }
+    // }, []);
+
+    // Тур будет всегда показываться при входе
     useEffect(() => {
-        const tourShown = localStorage.getItem('tourShown');
-        if (!tourShown) {
-            setIsTourOpen(true);
-            localStorage.setItem('tourShown', 'true');
-        }
+        setIsTourOpen(true);
     }, []);
 
     const calculatePriceEco = (distance) => {
@@ -246,11 +251,14 @@ const LocationPicker = () => {
             <Tour
                 steps={steps}
                 isOpen={isTourOpen}
-                onRequestClose={() => setIsTourOpen(false)}
+                onRequestClose={() => {} }  // Отключаем возможность закрытия
                 rounded={10}
                 showButtons={true}
-                showCloseButton={true}
-                lastStepNextButton={<button className="bg-blue-500 text-white px-4 py-2 rounded">Понятно</button>}
+                showCloseButton={false}  // Убираем кнопку закрытия
+                closeWithMask={false}    // Отключаем закрытие при клике на маску
+                disableInteraction={true}  // Отключаем взаимодействие с остальной страницей
+                lastStepNextButton={<button className="bg-blue-500 text-white px-4 py-2 rounded" onClick={() => setIsTourOpen(false)}>Понятно</button>}
+                disableKeyboardNavigation={['esc']}  // Отключаем возможность закрытия через ESC
                 styles={{
                     options: {
                         zIndex: 10000,
