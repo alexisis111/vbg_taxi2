@@ -10,6 +10,7 @@ import markerShadow from 'leaflet/dist/images/marker-shadow.png';
 import ecoImg from '/assets/eco1.png';
 import comfImg from '/assets/comf1.png';
 import kidsImg from '/assets/kids1.png';
+import swipeUp from '/assets/swipeUp.gif';
 import Tour from 'reactour';
 import './locationPicker.css'
 // Fix for missing marker icons
@@ -38,7 +39,12 @@ const LocationPicker = () => {
     const steps = [
         {
             selector: '.begin',
-            content: 'Чтобы начать, свайпни вверх.',
+            content: (
+                <div className='flex flex-col items-center justify-center'>
+                    <p className='text-black'>Откройте приложение на весь экран, свайпнув снизу вверх</p>
+                    <img src={swipeUp} alt="Gif" className='size-40' />
+                </div>
+            ),
         },
         {
             selector: '.leaMaps',
@@ -58,19 +64,19 @@ const LocationPicker = () => {
         }
     ];
 
-    // Проверяем, был ли уже показан тур
-    useEffect(() => {
-        const tourShown = localStorage.getItem('tourShown');
-        if (!tourShown) {
-            setIsTourOpen(true);
-            localStorage.setItem('tourShown', 'true');
-        }
-    }, []);
-
-    // // Тур будет всегда показываться при входе
+    // // Проверяем, был ли уже показан тур
     // useEffect(() => {
-    //     setIsTourOpen(true);
+    //     const tourShown = localStorage.getItem('tourShown');
+    //     if (!tourShown) {
+    //         setIsTourOpen(true);
+    //         localStorage.setItem('tourShown', 'true');
+    //     }
     // }, []);
+
+    // Тур будет всегда показываться при входе
+    useEffect(() => {
+        setIsTourOpen(true);
+    }, []);
 
     const calculatePriceEco = (distance) => {
         let basePrice;
@@ -247,7 +253,9 @@ const LocationPicker = () => {
 
     return (
         <>
-            <div className='begin'></div>
+            <div className='flex'>
+                <div className='begin flex items-center justify-center'></div>
+            </div>
             <Tour
                 steps={steps}
                 isOpen={isTourOpen}
@@ -276,25 +284,7 @@ const LocationPicker = () => {
                         top: '50%',
                         left: '50%',
                         transform: 'translate(-50%, -50%)'
-                    },
-                    tooltipContainer: {
-                        backgroundColor: '#333', // Темно-серый фон
-                        color: '#fff', // Белый текст
-                        borderRadius: '0.5rem',
-                        boxShadow: '0 4px 8px rgba(0, 0, 0, 0.3)', // Более заметная тень
-                        padding: '1rem',
-                        maxWidth: '300px',
-                        fontSize: '0.875rem',
-                    },
-                    tooltipContent: {
-                        color: '#fff', // Белый текст
-                    },
-                    tooltipArrow: {
-                        color: '#333' // Темно-серый для стрелки
-                    },
-                    tooltipTitle: {
-                        color: '#fff' // Белый заголовок
-                    },
+                    }
                 }}
             />
 
