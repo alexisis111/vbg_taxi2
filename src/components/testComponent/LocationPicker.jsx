@@ -279,7 +279,7 @@ const LocationPicker = () => {
                         fontSize: '0.875rem',
                     },
                     tooltipContent: {
-                        color: '#333',
+                        color: '#000',
                     },
                     buttonNext: {
                         display: 'none !important',  // Скрыть правую стрелку
