@@ -259,7 +259,7 @@ const LocationPicker = () => {
                 disableInteraction={true}
                 lastStepNextButton={
                     <div
-                        className='px-4 py-2 text-white duration-100 bg-blue-500 rounded-lg shadow-md focus:shadow-none ring-offset-2 ring-indigo-600 focus:ring-2'
+                        className='px-4 py-2 text-white duration-100 bg-blue-600 rounded-lg shadow-md focus:shadow-none ring-offset-2 ring-indigo-600 focus:ring-2'
                         onClick={() => setIsTourOpen(false)}
                     >
                         Понятно

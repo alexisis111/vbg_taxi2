@@ -1,15 +1,15 @@
 [data-tour-elem="dot"] {
     width: 16px !important;  /* Увеличиваем ширину кружков */
     height: 16px !important;  /* Увеличиваем высоту кружков */
-    background-color: #ccc !important;  /* Цвет неактивных кружков */
+    background-color: #424745 !important;  /* Цвет неактивных кружков */
     border-radius: 50% !important;  /* Округление кружков */
     margin: 0 4px !important;  /* Интервал между кружками */
 }
 
 [data-tour-elem="dot"].reactour__dot--is-active {
-    background-color: #4A90E2 !important;  /* Цвет активного кружка */
+    background-color: #007AFF !important;  /* Цвет активного кружка */
 }
 /* Темный фон для контейнера подсказки */
 .reactour__helper {
-    background-color: #CCC !important; /* Темно-серый фон */
+    background-color: #ccc !important; /* Темно-серый фон */
 }
