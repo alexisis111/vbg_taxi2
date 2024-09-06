@@ -196,7 +196,7 @@ const LocationPicker = () => {
                 }
                 map.fitBounds(bounds, {padding: [50, 50]});
             } else if (pickupCoords) {
-                map.setView(pickupCoords, 15);
+                map.setView(pickupCoords, 18);
             }
         }, [pickupCoords, dropoffCoords, routeCoords, map]);
         return null;
@@ -342,7 +342,7 @@ const LocationPicker = () => {
                 <MapContainer
                     center={[60.7076, 28.7528]}
                     zoom={13}
-                    className="w-full h-96"
+                    className="w-full h-[600px]"
                     whenCreated={mapInstance => {
                         mapRef.current = mapInstance;
                     }}
@@ -378,10 +378,9 @@ const LocationPicker = () => {
                     <MapUpdater/>
                 </MapContainer>
             </div>
-            <div className="w-full p-2">
+            <div className="w-full p-2 rounded-[20px] shadow-lg">
                 <div className="">
-                    <div className="flex items-center mb-4">
-                        <img src={marker1} alt="Marker 1" className="w-6 h-9 mx-1"/>
+                    <div className="flex items-center relative">
                         <input
                             id="pickup"
                             type="text"
@@ -391,8 +390,7 @@ const LocationPicker = () => {
                             readOnly
                         />
                     </div>
-                    <div className="flex items-center">
-                        <img src={marker2} alt="Marker 2" className="w-6 h-9 mx-1"/>
+                    <div className="flex items-center relative">
                         <input
                             id="dropoff"
                             type="text"
@@ -404,27 +402,28 @@ const LocationPicker = () => {
                     </div>
                 </div>
             </div>
-            <div className="container px-2 py-2">
+
+            <div className="container py-2">
                 <div className="flex space-x-3 overflow-x-auto p-4">
-                    <div className="flex-shrink-0 bg-white shadow-2xl rounded-lg overflow-hidden w-1/2 ">
+                    <div className="flex-shrink-0 bg-white shadow-2xl rounded-lg overflow-hidden w-1/3 ">
                         <img className="object-cover" src={ecoImg} alt="Card Image 1"/>
-                        <div className="p-2">
-                            <h3 className="text-xl font-bold mb-2">Эконом</h3>
-                            <p className="text-gray-600">{`Цена: ${routeDistance ? calculatePriceEco(routeDistance) + ' рублей' : 'Появится после указания маршрута'}`}</p>
+                        <div className="p-2 text-sm">
+                            <h3 className="font-bold mb-2">Эконом</h3>
+                            <p className="text-gray-600">{`${routeDistance ? calculatePriceEco(routeDistance) + ' рублей' : 'Сумма появится после указания маршрута'}`}</p>
                         </div>
                     </div>
-                    <div className="flex-shrink-0 bg-white shadow-2xl rounded-lg overflow-hidden w-1/2">
+                    <div className="flex-shrink-0 bg-white shadow-2xl rounded-lg overflow-hidden w-1/3">
                         <img className="object-cover mt-0.5" src={comfImg} alt="Card Image 2"/>
-                        <div className="p-2">
-                            <h3 className="text-xl font-bold mb-2">Комфорт</h3>
-                            <p className="text-gray-600">{`Цена: ${routeDistance ? calculatePriceComf(routeDistance) + ' рублей' : 'Появится после указания маршрута'}`}</p>
+                        <div className="p-2 text-sm">
+                            <h3 className="font-bold mb-2">Комфорт</h3>
+                            <p className="text-gray-600">{`${routeDistance ? calculatePriceComf(routeDistance) + ' рублей' : 'Сумма появится после указания маршрута'}`}</p>
                         </div>
                     </div>
-                    <div className="flex-shrink-0 bg-white shadow-2xl rounded-lg overflow-hidden w-1/2">
+                    <div className="flex-shrink-0 bg-white shadow-2xl rounded-lg overflow-hidden w-1/3">
                         <img className="object-cover mt-0.5" src={kidsImg} alt="Card Image 3"/>
-                        <div className="p-2">
-                            <h3 className="text-xl font-bold mb-2">Детский</h3>
-                            <p className="text-gray-600">{`Цена: ${routeDistance ? calculatePriceKids(routeDistance) + ' рублей' : 'Появится после указания маршрута'}`}</p>
+                        <div className="p-2 text-sm">
+                            <h3 className="font-bold mb-2">Детский</h3>
+                            <p className="text-gray-600">{`${routeDistance ? calculatePriceKids(routeDistance) + ' рублей' : 'Сумма появится после указания маршрута'}`}</p>
                         </div>
                     </div>
                 </div>

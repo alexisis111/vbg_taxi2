@@ -9,7 +9,6 @@
 [data-tour-elem="dot"].reactour__dot--is-active {
     background-color: #007AFF !important;  /* Цвет активного кружка */
 }
-/* Темный фон для контейнера подсказки */
-/*.reactour__helper {*/
-/*    background-color: #ccc !important; !* Темно-серый фон *!*/
-/*}*/
+.leaflet-control-attribution.leaflet-control {
+    display: none;
+}
