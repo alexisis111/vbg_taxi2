@@ -1,6 +1,6 @@
 [data-tour-elem="dot"] {
-    width: 16px !important;  /* Увеличиваем ширину кружков */
-    height: 16px !important;  /* Увеличиваем высоту кружков */
+    width: 12px !important;  /* Увеличиваем ширину кружков */
+    height: 12px !important;  /* Увеличиваем высоту кружков */
     background-color: #424745 !important;  /* Цвет неактивных кружков */
     border-radius: 50% !important;  /* Округление кружков */
     margin: 0 4px !important;  /* Интервал между кружками */

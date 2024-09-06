@@ -1,18 +1,22 @@
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
-import { MapContainer, TileLayer, Marker, useMap, useMapEvents, Polyline } from 'react-leaflet';
-import { useState, useEffect, useRef } from 'react';
+import {MapContainer, TileLayer, Marker, useMap, useMapEvents, Polyline} from 'react-leaflet';
+import {useState, useEffect, useRef} from 'react';
 import axios from 'axios';
 import polyline from '@mapbox/polyline';
+import Tour from 'reactour';
+import './locationPicker.css'
+
 import marker1 from '/assets/marker-icon-blue.png';
 import marker2 from '/assets/marker-icon-green.png';
 import markerShadow from 'leaflet/dist/images/marker-shadow.png';
+
 import ecoImg from '/assets/eco1.png';
 import comfImg from '/assets/comf1.png';
 import kidsImg from '/assets/kids1.png';
 import swipeUp from '/assets/swipeUp.gif';
-import Tour from 'reactour';
-import './locationPicker.css'
+import swipeLeftRight from '/assets/SwipeLeftRight.gif';
+import add2marker from '/assets/add2marker.gif';
 // Fix for missing marker icons
 delete L.Icon.Default.prototype._getIconUrl;
 
@@ -41,26 +45,70 @@ const LocationPicker = () => {
             selector: '.begin',
             content: (
                 <div className='flex flex-col items-center justify-center'>
-                    <p className='text-black'>Откройте приложение на весь экран, свайпнув снизу вверх</p>
-                    <img src={swipeUp} alt="Gif" className='size-40' />
+                    <p className='text-black text-center'>Проведите пальцем снизу - вверх, чтобы открыть приложение на весь
+                        экран</p>
+                    <img src={swipeUp} alt="Gif" className='size-40'/>
                 </div>
             ),
         },
         {
             selector: '.leaMaps',
-            content: 'Верхнюю часть экрана занимает карта, именно на ней происходит выбор маршрута. Первый маркер на карте автоматически установится согласно вашему  текщему местоположению.',
+            content: (
+                <div className='flex flex-col items-center justify-center'>
+                    <div className='text-black text-center'>Верхнюю часть экрана занимает карта, именно на ней происходит выбор
+                        маршрута.
+                    </div>
+                </div>
+            ),
         },
         {
             selector: '#pickup',
-            content: 'Тут вы увидите физический адрес вашего местоположения. Ввести адрес вручную пока нельзя. Адрес появится автоматически. Для смены адреса, переместите маркер на карте.',
+            content: (
+                <div className='flex flex-col items-center justify-center'>
+                    <div className='text-black text-center'>
+                        <div className='flex items-center justify-center'>
+                            <img src={marker1}/>
+                        </div>
+                        Тут вы увидите физический адрес вашего местоположения. Ввести адрес
+                        вручную пока нельзя.
+                        Адрес появится автоматически. Для смены адреса, переместите маркер на карте.
+                    </div>
+                </div>
+            ),
         },
         {
             selector: '#dropoff',
-            content: 'Чтобы выставить вторую точку на карте, необходимо переместить карту и найти на ней нужный вам адрес, а затем просто нажать нажать на него. Адрес автоматически будет заполнен. Ввести адрес вручную пока нельзя. Для изменения адреса - переместите маркер на карте',
+            content: (
+                <div className='flex flex-col items-center justify-center'>
+                    <div className='text-black text-center'>
+                        <div className='flex items-center justify-center'>
+                            <img src={marker2} />
+                        </div>
+                        Как указать конечную точку.
+                    </div>
+                    <div>
+                        <img src={add2marker} alt="" className='size-64'/>
+                    </div>
+                </div>
+            ),
+            //content: ,
         },
         {
             selector: '.flex-shrink-0',
-            content: 'Здесь вы видите различные варианты тарифов. Свайп влево - покажет все имеющиеся тарифы.',
+            content: (
+                <div className='flex flex-col items-center justify-center'>
+                    <p className='text-black text-center'>Здесь вы видите различные варианты тарифов. Свайп влево - покажет все имеющиеся тарифы.</p>
+                    <img src={swipeLeftRight} alt="Gif" className='size-40'/>
+                </div>
+            ),
+        },
+        {
+            selector: '.flex-shrink-0',
+            content: (
+                <div className='flex flex-col items-center justify-center'>
+                    <p className='text-black text-center'>Когда вы определитесь с тарифом, нажмите на выбранный, появится кнопка - заказать.</p>
+                </div>
+            ),
         }
     ];
 
@@ -146,7 +194,7 @@ const LocationPicker = () => {
                 if (routeCoords) {
                     bounds.extend(routeCoords.map(coord => [coord[0], coord[1]]));
                 }
-                map.fitBounds(bounds, { padding: [50, 50] });
+                map.fitBounds(bounds, {padding: [50, 50]});
             } else if (pickupCoords) {
                 map.setView(pickupCoords, 15);
             }
@@ -158,7 +206,7 @@ const LocationPicker = () => {
         if (navigator.geolocation) {
             navigator.geolocation.getCurrentPosition(
                 (position) => {
-                    const { latitude, longitude } = position.coords;
+                    const {latitude, longitude} = position.coords;
                     setUserLocation([latitude, longitude]);
                     setPickupCoords([latitude, longitude]);
                     fetchAddress([latitude, longitude], setPickup);
@@ -259,7 +307,8 @@ const LocationPicker = () => {
             <Tour
                 steps={steps}
                 isOpen={isTourOpen}
-                onRequestClose={() => {}}
+                onRequestClose={() => {
+                }}
                 rounded={10}
                 showButtons={true}
                 showCloseButton={false}
@@ -270,7 +319,7 @@ const LocationPicker = () => {
                         className='px-4 py-2 text-white duration-100 bg-blue-500 rounded-lg shadow-md focus:shadow-none ring-offset-2 ring-indigo-600 focus:ring-2'
                         onClick={() => setIsTourOpen(false)}
                     >
-                        Понятно
+                        Вперед
                     </div>
                 }
                 disableKeyboardNavigation={['esc']}
@@ -287,8 +336,6 @@ const LocationPicker = () => {
                     }
                 }}
             />
-
-
 
 
             <div className="leaMaps">
