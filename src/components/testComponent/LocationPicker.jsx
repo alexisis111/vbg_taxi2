@@ -58,19 +58,19 @@ const LocationPicker = () => {
         }
     ];
 
-    // // Проверяем, был ли уже показан тур
-    // useEffect(() => {
-    //     const tourShown = localStorage.getItem('tourShown');
-    //     if (!tourShown) {
-    //         setIsTourOpen(true);
-    //         localStorage.setItem('tourShown', 'true');
-    //     }
-    // }, []);
-
-    // Тур будет всегда показываться при входе
+    // Проверяем, был ли уже показан тур
     useEffect(() => {
-        setIsTourOpen(true);
+        const tourShown = localStorage.getItem('tourShown');
+        if (!tourShown) {
+            setIsTourOpen(true);
+            localStorage.setItem('tourShown', 'true');
+        }
     }, []);
+
+    // // Тур будет всегда показываться при входе
+    // useEffect(() => {
+    //     setIsTourOpen(true);
+    // }, []);
 
     const calculatePriceEco = (distance) => {
         let basePrice;
@@ -259,7 +259,7 @@ const LocationPicker = () => {
                 disableInteraction={true}
                 lastStepNextButton={
                     <div
-                        className='px-4 py-2 text-white duration-100 bg-blue-600 rounded-lg shadow-md focus:shadow-none ring-offset-2 ring-indigo-600 focus:ring-2'
+                        className='px-4 py-2 text-white duration-100 bg-blue-500 rounded-lg shadow-md focus:shadow-none ring-offset-2 ring-indigo-600 focus:ring-2'
                         onClick={() => setIsTourOpen(false)}
                     >
                         Понятно
