@@ -257,7 +257,7 @@ const LocationPicker = () => {
                 showCloseButton={false}
                 closeWithMask={false}
                 disableInteraction={true}
-                lastStepNextButton={<div style={{ backgroundColor: '#4A90E2', color: '#fff', padding: '0.5rem 1rem', borderRadius: '0.25rem', cursor: 'pointer' }} onClick={() => setIsTourOpen(false)}>Понятно</div>}
+                lastStepNextButton={<div className='px-4 py-2 text-white duration-100 bg-indigo-600 rounded-lg shadow-md focus:shadow-none ring-offset-2 ring-indigo-600 focus:ring-2' onClick={() => setIsTourOpen(false)}>Понятно</div>}
                 disableKeyboardNavigation={['esc']}
                 styles={{
                     options: {
@@ -280,13 +280,7 @@ const LocationPicker = () => {
                     },
                     tooltipContent: {
                         color: '#000',
-                    },
-                    buttonNext: {
-                        display: 'none !important',  // Скрыть правую стрелку
-                    },
-                    buttonBack: {
-                        display: 'none !important',  // Скрыть левую стрелку
-                    },
+                    }
                 }}
             />
 
