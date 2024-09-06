@@ -259,7 +259,7 @@ const LocationPicker = () => {
                 disableInteraction={true}
                 lastStepNextButton={
                     <div
-                        className='px-4 py-2 text-white duration-100 bg-indigo-600 rounded-lg shadow-md focus:shadow-none ring-offset-2 ring-indigo-600 focus:ring-2'
+                        className='px-4 py-2 text-white duration-100 bg-blue-500 rounded-lg shadow-md focus:shadow-none ring-offset-2 ring-indigo-600 focus:ring-2'
                         onClick={() => setIsTourOpen(false)}
                     >
                         Понятно
@@ -278,25 +278,26 @@ const LocationPicker = () => {
                         transform: 'translate(-50%, -50%)'
                     },
                     tooltipContainer: {
-                        backgroundColor: '#fff',
-                        color: '#000',
+                        backgroundColor: '#333', // Темно-серый фон
+                        color: '#fff', // Белый текст
                         borderRadius: '0.5rem',
-                        boxShadow: '0 4px 8px rgba(0, 0, 0, 0.1)',
+                        boxShadow: '0 4px 8px rgba(0, 0, 0, 0.3)', // Более заметная тень
                         padding: '1rem',
                         maxWidth: '300px',
                         fontSize: '0.875rem',
                     },
                     tooltipContent: {
-                        color: '#000',
+                        color: '#fff', // Белый текст
                     },
                     tooltipArrow: {
-                        color: '#fff' // Цвет стрелки для контраста
+                        color: '#333' // Темно-серый для стрелки
                     },
                     tooltipTitle: {
-                        color: '#000' // Цвет заголовка
+                        color: '#fff' // Белый заголовок
                     },
                 }}
             />
+
 
 
 
