@@ -11,7 +11,7 @@ import ecoImg from '/assets/eco1.png';
 import comfImg from '/assets/comf1.png';
 import kidsImg from '/assets/kids1.png';
 import Tour from 'reactour';
-
+import '../../App.css'
 // Fix for missing marker icons
 delete L.Icon.Default.prototype._getIconUrl;
 
@@ -38,24 +38,24 @@ const LocationPicker = () => {
     const steps = [
         {
             selector: '.begin',
-            content: 'Это карта. Здесь вы можете выбрать места для посадки и высадки.',
+            content: 'Чтобы начать, свайпни вверх.',
+        },
+        {
+            selector: '.leaMaps',
+            content: 'Верхнюю часть экрана занимает карта, именно на ней происходит выбор маршрута. Первый маркер на карте автоматически установится согласно вашему  текщему местоположению.',
         },
         {
             selector: '#pickup',
-            content: 'Введите адрес, откуда вас забрать.',
+            content: 'Тут вы увидите физический адрес вашего местоположения. Ввести адрес вручную пока нельзя. Адрес появится автоматически. Для смены адреса, переместите маркер на карте.',
         },
         {
             selector: '#dropoff',
-            content: 'Введите адрес, куда вас нужно отвезти.',
+            content: 'Чтобы выставить вторую точку на карте, необходимо переместить карту и найти на ней нужный вам адрес, а затем просто нажать нажать на него. Адрес автоматически будет заполнен. Ввести адрес вручную пока нельзя. Для изменения адреса - переместите маркер на карте',
         },
         {
             selector: '.flex-shrink-0',
-            content: 'Здесь вы видите различные варианты тарифов. Выберите подходящий для вас.',
-        },
-        {
-            selector: '.mt-2.text-black',
-            content: 'Это расстояние маршрута, которое вы выбрали.',
-        },
+            content: 'Здесь вы видите различные варианты тарифов. Свайп влево - покажет все имеющиеся тарифы.',
+        }
     ];
 
     // // Проверяем, был ли уже показан тур
@@ -251,18 +251,17 @@ const LocationPicker = () => {
             <Tour
                 steps={steps}
                 isOpen={isTourOpen}
-                onRequestClose={() => {} }  // Отключаем возможность закрытия
+                onRequestClose={() => {} }
                 rounded={10}
                 showButtons={true}
-                showCloseButton={false}  // Убираем кнопку закрытия
-                closeWithMask={false}    // Отключаем закрытие при клике на маску
-                disableInteraction={true}  // Отключаем взаимодействие с остальной страницей
-                lastStepNextButton={<button className="bg-blue-500 text-white px-4 py-2 rounded" onClick={() => setIsTourOpen(false)}>Понятно</button>}
-                disableKeyboardNavigation={['esc']}  // Отключаем возможность закрытия через ESC
+                showCloseButton={false}
+                closeWithMask={false}
+                disableInteraction={true}
+                lastStepNextButton={<div style={{ backgroundColor: '#4A90E2', color: '#fff', padding: '0.5rem 1rem', borderRadius: '0.25rem', cursor: 'pointer' }} onClick={() => setIsTourOpen(false)}>Понятно</div>}
+                disableKeyboardNavigation={['esc']}
                 styles={{
                     options: {
                         zIndex: 10000,
-                        // Центрирование по центру экрана
                         width: 'auto',
                         maxWidth: '100%',
                         margin: '0 auto',
@@ -270,20 +269,6 @@ const LocationPicker = () => {
                         top: '50%',
                         left: '50%',
                         transform: 'translate(-50%, -50%)'
-                    },
-                    buttonNext: {
-                        backgroundColor: '#4A90E2',
-                        color: '#fff',
-                        borderRadius: '0.25rem',
-                        padding: '0.5rem 1rem',
-                        fontSize: '1rem',
-                    },
-                    buttonBack: {
-                        backgroundColor: '#ccc',
-                        color: '#000',
-                        borderRadius: '0.25rem',
-                        padding: '0.5rem 1rem',
-                        fontSize: '1rem',
                     },
                     tooltipContainer: {
                         backgroundColor: '#fff',
@@ -296,9 +281,17 @@ const LocationPicker = () => {
                     tooltipContent: {
                         color: '#333',
                     },
+                    buttonNext: {
+                        display: 'none !important',  // Скрыть правую стрелку
+                    },
+                    buttonBack: {
+                        display: 'none !important',  // Скрыть левую стрелку
+                    },
                 }}
             />
-            <div className="">
+
+
+            <div className="leaMaps">
                 <MapContainer
                     center={[60.7076, 28.7528]}
                     zoom={13}
