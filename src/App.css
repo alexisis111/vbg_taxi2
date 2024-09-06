@@ -23,7 +23,7 @@ body {
 
 /* Стили для тултипа */
 [data-tour-elem="tooltipContainer"] {
-  background-color: var(--tg-theme-tooltip-bg-color, #fff) !important;  /* Цвет фона тултипа */
+  background-color: #fff !important;  /* Цвет фона тултипа */
   color: #000 !important;  /* Цвет текста тултипа всегда черный */
   border-radius: 0.5rem !important;  /* Скругление углов */
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1) !important;  /* Тень */

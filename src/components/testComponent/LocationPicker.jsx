@@ -272,6 +272,7 @@ const LocationPicker = () => {
                     },
                     tooltipContainer: {
                         backgroundColor: '#fff',
+                        color: '#000',
                         borderRadius: '0.5rem',
                         boxShadow: '0 4px 8px rgba(0, 0, 0, 0.1)',
                         padding: '1rem',
