@@ -378,7 +378,7 @@ const LocationPicker = () => {
                     <MapUpdater/>
                 </MapContainer>
             </div>
-            <div className="w-full p-2 z-10 bg-white bg-opacity-90 shadow-md">
+            <div className="w-full p-2">
                 <div className="">
                     <div className="flex items-center mb-4">
                         <img src={marker1} alt="Marker 1" className="w-6 h-9 mx-1"/>
