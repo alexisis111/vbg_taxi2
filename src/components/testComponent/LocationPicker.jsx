@@ -264,7 +264,7 @@ const LocationPicker = () => {
                         zIndex: 10000,
                         // Центрирование по центру экрана
                         width: 'auto',
-                        maxWidth: '90%',
+                        maxWidth: '100%',
                         margin: '0 auto',
                         position: 'absolute',
                         top: '50%',
