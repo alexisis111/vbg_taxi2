@@ -11,7 +11,7 @@ import ecoImg from '/assets/eco1.png';
 import comfImg from '/assets/comf1.png';
 import kidsImg from '/assets/kids1.png';
 import Tour from 'reactour';
-import '../../App.css'
+import './locationPicker.css'
 // Fix for missing marker icons
 delete L.Icon.Default.prototype._getIconUrl;
 
