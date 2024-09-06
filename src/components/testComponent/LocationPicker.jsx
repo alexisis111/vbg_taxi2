@@ -251,13 +251,20 @@ const LocationPicker = () => {
             <Tour
                 steps={steps}
                 isOpen={isTourOpen}
-                onRequestClose={() => {} }
+                onRequestClose={() => {}}
                 rounded={10}
                 showButtons={true}
                 showCloseButton={false}
                 closeWithMask={false}
                 disableInteraction={true}
-                lastStepNextButton={<div className='px-4 py-2 text-white duration-100 bg-indigo-600 rounded-lg shadow-md focus:shadow-none ring-offset-2 ring-indigo-600 focus:ring-2' onClick={() => setIsTourOpen(false)}>Понятно</div>}
+                lastStepNextButton={
+                    <div
+                        className='px-4 py-2 text-white duration-100 bg-indigo-600 rounded-lg shadow-md focus:shadow-none ring-offset-2 ring-indigo-600 focus:ring-2'
+                        onClick={() => setIsTourOpen(false)}
+                    >
+                        Понятно
+                    </div>
+                }
                 disableKeyboardNavigation={['esc']}
                 styles={{
                     options: {
@@ -281,9 +288,16 @@ const LocationPicker = () => {
                     },
                     tooltipContent: {
                         color: '#000',
-                    }
+                    },
+                    tooltipArrow: {
+                        color: '#fff' // Цвет стрелки для контраста
+                    },
+                    tooltipTitle: {
+                        color: '#000' // Цвет заголовка
+                    },
                 }}
             />
+
 
 
             <div className="leaMaps">
