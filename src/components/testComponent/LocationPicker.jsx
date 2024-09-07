@@ -333,8 +333,7 @@ const LocationPicker = () => {
 
         console.log("Данные для отправки:", orderData); // Логирование данных
 
-        // Отправка данных на ваш сервер или другой URL для тестирования
-        fetch('https://4ec0-185-108-19-43.ngrok-free.app/order-data', { // Замените на URL вашего сервера
+        fetch('https://4ec0-185-108-19-43.ngrok-free.app/order-data', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -344,6 +343,7 @@ const LocationPicker = () => {
             .then(response => response.json())
             .then(result => {
                 console.log('Success:', result);
+                tg.close(); // Закрытие веб-приложения
             })
             .catch(error => {
                 console.error('Error:', error);
@@ -351,6 +351,7 @@ const LocationPicker = () => {
 
         tg.sendData(JSON.stringify(orderData));
     }, [pickup, dropoff, selectedTariff, routeDistance, tg]);
+
 
     useEffect(() => {
         tg.onEvent('mainButtonClicked', handleSendData);
