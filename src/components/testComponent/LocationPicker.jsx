@@ -28,7 +28,7 @@ L.Icon.Default.mergeOptions({
     shadowUrl: markerShadow,
 });
 
-const API_KEY = '5b3ce3597851110001cf6248143b17765c594c79a4a1a61dc30df2cb'; // Замените на ваш API ключ
+const API_KEY = import.meta.env.VITE_API_KEY;
 
 const LocationPicker = () => {
     const [pickup, setPickup] = useState('');
