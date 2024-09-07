@@ -398,6 +398,13 @@ const LocationPicker = () => {
                             value={pickup}
                             placeholder="Откуда вас забрать?"
                             className="flex-grow p-3 border-none placeholder-gray-500 focus:outline-none"
+                            style={{
+                                backgroundColor: "var(--tg-theme-bg-color)",
+                                color: "var(--tg-theme-text-color)",
+                                "::placeholder": {
+                                    color: "var(--tg-theme-hint-color)"
+                                }
+                            }}
                             readOnly
                         />
                     </div>
@@ -408,18 +415,26 @@ const LocationPicker = () => {
                             value={dropoff}
                             placeholder="Куда отвезти?"
                             className="flex-grow p-3 border-none border-t border-gray-300 placeholder-gray-500 focus:outline-none"
+                            style={{
+                                backgroundColor: "var(--tg-theme-bg-color)",
+                                color: "var(--tg-theme-text-color)",
+                                "::placeholder": {
+                                    color: "var(--tg-theme-hint-color)"
+                                }
+                            }}
                             readOnly
                         />
                     </div>
                 </div>
             </div>
 
+
             <div className="container py-2">
                 <div className="flex space-x-3 overflow-x-auto p-4">
                     {tariffs.map((tariff) => (
                         <div
                             key={tariff.id}
-                            className={`flex-shrink-0 bg-white shadow-2xl rounded-lg overflow-hidden w-1/3 cursor-pointer ${
+                            className={`flex-shrink-0 shadow-2xl rounded-lg overflow-hidden w-1/3 cursor-pointer ${
                                 selectedTariff === tariff.id ? 'ring-4 ring-blue-500' : ''
                             }`}
                             onClick={() => setSelectedTariff(tariff.id)}
