@@ -1,11 +1,13 @@
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import {MapContainer, TileLayer, Marker, useMap, useMapEvents, Polyline} from 'react-leaflet';
-import {useState, useEffect, useRef} from 'react';
+import {useState, useEffect, useRef, useCallback} from 'react';
 import axios from 'axios';
 import polyline from '@mapbox/polyline';
 import Tour from 'reactour';
 import './locationPicker.css'
+import { useTelegram } from '../../hooks/useTelegram'; // импорт хука для работы с Telegram
+
 
 import marker1 from '/assets/marker-icon-blue.png';
 import marker2 from '/assets/marker-icon-green.png';
@@ -39,6 +41,7 @@ const LocationPicker = () => {
     const mapRef = useRef(null); // Ссылка на экземпляр карты
     const [isTourOpen, setIsTourOpen] = useState(false);
     const [selectedTariff, setSelectedTariff] = useState(null);
+    const { tg } = useTelegram(); // используем хук для получения tg объекта
 
 
 
@@ -309,6 +312,38 @@ const LocationPicker = () => {
         shadowAnchor: [12, 41]
     });
 
+    useEffect(() => {
+        if (pickup && dropoff && selectedTariff) {
+            tg.MainButton.show();
+            tg.MainButton.setParams({
+                text: 'Заказать поездку',
+            });
+        } else {
+            tg.MainButton.hide();
+        }
+    }, [pickup, dropoff, selectedTariff, tg]);
+
+    const handleSendData = useCallback(() => {
+        const orderData = {
+            pickup,
+            dropoff,
+            tariff: selectedTariff,
+            distance: routeDistance,
+        };
+
+        // Отправляем данные боту
+        tg.sendData(JSON.stringify(orderData));
+
+        console.log("Данные отправлены боту:", orderData);
+    }, [pickup, dropoff, selectedTariff, routeDistance, tg]);
+
+    useEffect(() => {
+        tg.onEvent('mainButtonClicked', handleSendData);
+        return () => {
+            tg.offEvent('mainButtonClicked', handleSendData);
+        };
+    }, [handleSendData, tg]);
+
     return (
         <>
             <div className='flex'>
@@ -382,8 +417,9 @@ const LocationPicker = () => {
                         />
                     )}
                     {routeCoords && (
-                        <Polyline positions={routeCoords} color="green"/>
+                        <Polyline positions={routeCoords} color="blue" weight={5} />
                     )}
+
                     <LocationMarker/>
                     <MapUpdater/>
                 </MapContainer>
@@ -435,7 +471,7 @@ const LocationPicker = () => {
                         <div
                             key={tariff.id}
                             className={`flex-shrink-0 shadow-2xl rounded-lg overflow-hidden w-1/3 cursor-pointer ${
-                                selectedTariff === tariff.id ? 'ring-4 ring-blue-500' : ''
+                                selectedTariff === tariff.id ? 'ring-4 ring-blue-600' : ''
                             }`}
                             onClick={() => setSelectedTariff(tariff.id)}
                         >
