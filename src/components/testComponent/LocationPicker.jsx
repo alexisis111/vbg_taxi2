@@ -118,19 +118,19 @@ const LocationPicker = () => {
         }
     ];
 
-    // // Проверяем, был ли уже показан тур
-    // useEffect(() => {
-    //     const tourShown = localStorage.getItem('tourShown');
-    //     if (!tourShown) {
-    //         setIsTourOpen(true);
-    //         localStorage.setItem('tourShown', 'true');
-    //     }
-    // }, []);
+    // Проверяем, был ли уже показан тур
+    useEffect(() => {
+        const tourShown = localStorage.getItem('tourShown');
+        if (!tourShown) {
+            setIsTourOpen(true);
+            localStorage.setItem('tourShown', 'true');
+        }
+    }, []);
 
     // Тур будет всегда показываться при входе
-    useEffect(() => {
-        setIsTourOpen(true);
-    }, []);
+    // useEffect(() => {
+    //     setIsTourOpen(true);
+    // }, []);
 
     const calculatePriceEco = (distance) => {
         let basePrice;
@@ -365,7 +365,6 @@ const LocationPicker = () => {
         tg.sendData(JSON.stringify(orderData));
     }, [pickup, dropoff, selectedTariff, routeDistance, tg, user, queryId, userId]);
 
-
     useEffect(() => {
         tg.onEvent('mainButtonClicked', handleSendData);
         return () => {
@@ -517,22 +516,6 @@ const LocationPicker = () => {
                         </div>
                     ))}
                 </div>
-            </div>
-
-            {routeDistance && (
-                <div className="mt-2 text-black">
-                    Расстояние: {routeDistance} км
-                </div>
-            )}
-
-            {/* Кнопка отправки данных */}
-            <div className="p-4">
-                <button
-                    onClick={handleSendData}
-                    className="w-full px-4 py-2 text-white bg-blue-500 rounded-lg shadow-md hover:bg-blue-600"
-                >
-                    Отправить данные
-                </button>
             </div>
         </>
     );
