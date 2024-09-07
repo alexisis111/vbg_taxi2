@@ -381,33 +381,6 @@ const LocationPicker = () => {
         };
     }, [handleSendData, tg]);
 
-    const handleOpenYandexMaps = async () => {
-        if (pickupCoords && dropoffCoords) {
-            const startPoint = userLocation || pickupCoords;
-            const routeString = routeCoords ? routeCoords.map(coord => `${coord[1]},${coord[0]}`).join('~') : '';
-
-            // Формируем URL для Яндекс.Карт
-            const yandexMapsUrl = `https://yandex.ru/maps/?rtext=${startPoint[0]},${startPoint[1]}~${pickupCoords[0]},${pickupCoords[1]}~${dropoffCoords[0]},${dropoffCoords[1]}&rtt=auto&l=map&pt=${startPoint[1]},${startPoint[0]};${pickupCoords[1]},${pickupCoords[0]};${dropoffCoords[1]},${dropoffCoords[0]}`;
-
-            // Отправляем данные на сервер
-            try {
-                await fetch('https://4ec0-185-108-19-43.ngrok-free.app/order-data', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        pickup: pickupCoords.join(','),
-                        dropoff: dropoffCoords.join(',')
-                    }),
-                });
-            } catch (error) {
-                console.error('Ошибка при отправке данных на сервер:', error);
-            }
-        } else {
-            alert('Пожалуйста, установите координаты отправления и назначения.');
-        }
-    };
-
-
 
     return (
         <>
@@ -553,12 +526,6 @@ const LocationPicker = () => {
                     ))}
                 </div>
             </div>
-            <button
-                onClick={handleOpenYandexMaps}
-                className="mt-4 px-4 py-2 bg-blue-500 text-white rounded-lg shadow-md"
-            >
-                Открыть в Яндекс.Картах
-            </button>
         </>
     );
 };
