@@ -324,10 +324,14 @@ const LocationPicker = () => {
     }, [pickup, dropoff, selectedTariff, tg]);
 
     const handleSendData = useCallback(() => {
+        // Найти объект тарифа по selectedTariff (id)
+        const selectedTariffObj = tariffs.find(tariff => tariff.id === selectedTariff);
+
         const orderData = {
             pickup,
             dropoff,
-            tariff: selectedTariff,
+            // Передаем name вместо id тарифа
+            tariff: selectedTariffObj ? selectedTariffObj.name : selectedTariff,
             distance: routeDistance,
             user,
             queryId,
