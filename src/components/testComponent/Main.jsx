@@ -68,10 +68,10 @@ const Main = () => {
     return (
         <>
             <div className='flex flex-col items-center justify-center pt-10'>
-                <label className="text-gray-600">
+                <label className="">
                     Введите ваш номер телефона
                 </label>
-                <div className="relative mt-2 max-w-xs text-gray-500">
+                <div className="relative mt-2 max-w-xs">
                     <div className="absolute inset-y-0 left-3 my-auto h-6 flex items-center border-r pr-2">
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5}
                              stroke="currentColor" className="w-6 h-6">
