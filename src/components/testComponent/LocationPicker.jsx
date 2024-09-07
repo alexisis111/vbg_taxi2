@@ -327,12 +327,18 @@ const LocationPicker = () => {
         // Найти объект тарифа по selectedTariff (id)
         const selectedTariffObj = tariffs.find(tariff => tariff.id === selectedTariff);
 
+        // Рассчитываем сумму заказа, если найдена функция расчета
+        const totalPrice = selectedTariffObj
+            ? selectedTariffObj.calculatePrice(routeDistance) // Функция расчета суммы на основе расстояния
+            : 0; // Если тариф не найден, сумма будет 0
+
         const orderData = {
             pickup,
             dropoff,
-            // Передаем name вместо id тарифа
+            // Передаем name тарифа
             tariff: selectedTariffObj ? selectedTariffObj.name : selectedTariff,
             distance: routeDistance,
+            price: totalPrice, // Добавляем сумму заказа
             user,
             queryId,
             userId
