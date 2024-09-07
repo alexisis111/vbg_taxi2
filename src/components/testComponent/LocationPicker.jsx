@@ -38,6 +38,9 @@ const LocationPicker = () => {
     const [userLocation, setUserLocation] = useState(null);
     const mapRef = useRef(null); // Ссылка на экземпляр карты
     const [isTourOpen, setIsTourOpen] = useState(false);
+    const [selectedTariff, setSelectedTariff] = useState(null);
+
+
 
     // Определяем шаги тура
     const steps = [
@@ -185,6 +188,13 @@ const LocationPicker = () => {
         const totalPrice = basePrice + additionalCharge;
         return Math.round(totalPrice.toFixed(1));
     };
+
+    //тарифы
+    const tariffs = [
+        { id: 'eco', name: 'Эконом', img: ecoImg, calculatePrice: calculatePriceEco },
+        { id: 'comfort', name: 'Комфорт', img: comfImg, calculatePrice: calculatePriceComf },
+        { id: 'kids', name: 'Детский', img: kidsImg, calculatePrice: calculatePriceKids },
+    ];
 
     const MapUpdater = () => {
         const map = useMap();
@@ -342,7 +352,7 @@ const LocationPicker = () => {
                 <MapContainer
                     center={[60.7076, 28.7528]}
                     zoom={13}
-                    className="w-full h-[600px]"
+                    className="w-full h-[550px]"
                     whenCreated={mapInstance => {
                         mapRef.current = mapInstance;
                     }}
@@ -378,6 +388,7 @@ const LocationPicker = () => {
                     <MapUpdater/>
                 </MapContainer>
             </div>
+
             <div className="w-full p-2 rounded-[20px] shadow-lg">
                 <div className="">
                     <div className="flex items-center relative">
@@ -386,7 +397,7 @@ const LocationPicker = () => {
                             type="text"
                             value={pickup}
                             placeholder="Откуда вас забрать?"
-                            className="flex-grow p-3 border border-gray-300 rounded-lg bg-gray-50 text-gray-700 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            className="flex-grow p-3 border-none bg-gray-50 text-gray-700 placeholder-gray-500 focus:outline-none"
                             readOnly
                         />
                     </div>
@@ -396,7 +407,7 @@ const LocationPicker = () => {
                             type="text"
                             value={dropoff}
                             placeholder="Куда отвезти?"
-                            className="flex-grow p-3 border border-gray-300 rounded-lg bg-gray-50 text-gray-700 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            className="flex-grow p-3 border-none border-t border-gray-300 bg-gray-50 text-gray-700 placeholder-gray-500 focus:outline-none"
                             readOnly
                         />
                     </div>
@@ -405,27 +416,25 @@ const LocationPicker = () => {
 
             <div className="container py-2">
                 <div className="flex space-x-3 overflow-x-auto p-4">
-                    <div className="flex-shrink-0 bg-white shadow-2xl rounded-lg overflow-hidden w-1/3 ">
-                        <img className="object-cover" src={ecoImg} alt="Card Image 1"/>
-                        <div className="p-2 text-sm">
-                            <h3 className="font-bold mb-2">Эконом</h3>
-                            <p className="text-gray-600">{`${routeDistance ? calculatePriceEco(routeDistance) + ' рублей' : 'Сумма появится после указания маршрута'}`}</p>
+                    {tariffs.map((tariff) => (
+                        <div
+                            key={tariff.id}
+                            className={`flex-shrink-0 bg-white shadow-2xl rounded-lg overflow-hidden w-1/3 cursor-pointer ${
+                                selectedTariff === tariff.id ? 'ring-4 ring-blue-500' : ''
+                            }`}
+                            onClick={() => setSelectedTariff(tariff.id)}
+                        >
+                            <img className="object-cover" src={tariff.img} alt={`${tariff.name} Image`}/>
+                            <div className="p-2 text-sm">
+                                <h3 className="font-bold mb-2">{tariff.name}</h3>
+                                <p className="text-gray-600">
+                                    {routeDistance
+                                        ? `${tariff.calculatePrice(routeDistance)} рублей`
+                                        : 'Сумма появится после указания маршрута'}
+                                </p>
+                            </div>
                         </div>
-                    </div>
-                    <div className="flex-shrink-0 bg-white shadow-2xl rounded-lg overflow-hidden w-1/3">
-                        <img className="object-cover mt-0.5" src={comfImg} alt="Card Image 2"/>
-                        <div className="p-2 text-sm">
-                            <h3 className="font-bold mb-2">Комфорт</h3>
-                            <p className="text-gray-600">{`${routeDistance ? calculatePriceComf(routeDistance) + ' рублей' : 'Сумма появится после указания маршрута'}`}</p>
-                        </div>
-                    </div>
-                    <div className="flex-shrink-0 bg-white shadow-2xl rounded-lg overflow-hidden w-1/3">
-                        <img className="object-cover mt-0.5" src={kidsImg} alt="Card Image 3"/>
-                        <div className="p-2 text-sm">
-                            <h3 className="font-bold mb-2">Детский</h3>
-                            <p className="text-gray-600">{`${routeDistance ? calculatePriceKids(routeDistance) + ' рублей' : 'Сумма появится после указания маршрута'}`}</p>
-                        </div>
-                    </div>
+                    ))}
                 </div>
             </div>
 
