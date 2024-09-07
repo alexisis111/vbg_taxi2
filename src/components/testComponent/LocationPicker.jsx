@@ -389,7 +389,7 @@ const LocationPicker = () => {
                 </MapContainer>
             </div>
 
-            <div className="w-full p-2 rounded-[20px] shadow-lg">
+            <div className="w-full rounded-[20px] shadow-lg">
                 <div className="">
                     <div className="flex items-center relative">
                         <input
@@ -397,7 +397,7 @@ const LocationPicker = () => {
                             type="text"
                             value={pickup}
                             placeholder="Откуда вас забрать?"
-                            className="flex-grow p-3 border-none bg-gray-50 text-gray-700 placeholder-gray-500 focus:outline-none"
+                            className="flex-grow p-3 border-none placeholder-gray-500 focus:outline-none"
                             readOnly
                         />
                     </div>
@@ -407,7 +407,7 @@ const LocationPicker = () => {
                             type="text"
                             value={dropoff}
                             placeholder="Куда отвезти?"
-                            className="flex-grow p-3 border-none border-t border-gray-300 bg-gray-50 text-gray-700 placeholder-gray-500 focus:outline-none"
+                            className="flex-grow p-3 border-none border-t border-gray-300 placeholder-gray-500 focus:outline-none"
                             readOnly
                         />
                     </div>
