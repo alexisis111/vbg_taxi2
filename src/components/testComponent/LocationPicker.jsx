@@ -331,10 +331,25 @@ const LocationPicker = () => {
             distance: routeDistance,
         };
 
-        // Отправляем данные боту
-        tg.sendData(JSON.stringify(orderData));
+        console.log("Данные для отправки:", orderData); // Логирование данных
 
-        console.log("Данные отправлены боту:", orderData);
+        // Отправка данных на ваш сервер или другой URL для тестирования
+        fetch('https://4ec0-185-108-19-43.ngrok-free.app/order-data', { // Замените на URL вашего сервера
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(orderData),
+        })
+            .then(response => response.json())
+            .then(result => {
+                console.log('Success:', result);
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+
+        tg.sendData(JSON.stringify(orderData));
     }, [pickup, dropoff, selectedTariff, routeDistance, tg]);
 
     useEffect(() => {
@@ -343,6 +358,7 @@ const LocationPicker = () => {
             tg.offEvent('mainButtonClicked', handleSendData);
         };
     }, [handleSendData, tg]);
+
 
     return (
         <>
@@ -494,6 +510,16 @@ const LocationPicker = () => {
                     Расстояние: {routeDistance} км
                 </div>
             )}
+
+            {/* Кнопка отправки данных */}
+            <div className="p-4">
+                <button
+                    onClick={handleSendData}
+                    className="w-full px-4 py-2 text-white bg-blue-500 rounded-lg shadow-md hover:bg-blue-600"
+                >
+                    Отправить данные
+                </button>
+            </div>
         </>
     );
 };
