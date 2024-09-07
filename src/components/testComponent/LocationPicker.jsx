@@ -352,7 +352,7 @@ const LocationPicker = () => {
                 <MapContainer
                     center={[60.7076, 28.7528]}
                     zoom={13}
-                    className="w-full h-[550px]"
+                    className="w-full h-[450px]"
                     whenCreated={mapInstance => {
                         mapRef.current = mapInstance;
                     }}

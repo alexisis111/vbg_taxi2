@@ -12,3 +12,8 @@
 .leaflet-control-attribution.leaflet-control {
     display: none;
 }
+
+body {
+    background: var(--tg-theme-bg-color);
+    color: var(--tg-theme-text-color);
+}
