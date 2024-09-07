@@ -382,12 +382,15 @@ const LocationPicker = () => {
     }, [handleSendData, tg]);
 
     const handleOpenYandexMaps = () => {
-        if (pickupCoords && dropoffCoords && routeCoords) {
+        if (pickupCoords && dropoffCoords) {
+            // Определяем начальную точку маршрута
+            const startPoint = userLocation || pickupCoords;
+
             // Преобразование маршрута в строку для Яндекс.Карт
-            const routeString = routeCoords.map(coord => `${coord[1]},${coord[0]}`).join('~');
+            const routeString = routeCoords ? routeCoords.map(coord => `${coord[1]},${coord[0]}`).join('~') : '';
 
             // Формирование URL для Яндекс.Карт
-            const yandexMapsUrl = `https://yandex.ru/maps/?rtext=${pickupCoords[0]},${pickupCoords[1]}~${dropoffCoords[0]},${dropoffCoords[1]}&rtt=auto&l=map&pt=${pickupCoords[1]},${pickupCoords[0]};${dropoffCoords[1]},${dropoffCoords[0]}`;
+            const yandexMapsUrl = `https://yandex.ru/maps/?rtext=${startPoint[0]},${startPoint[1]}~${pickupCoords[0]},${pickupCoords[1]}~${dropoffCoords[0]},${dropoffCoords[1]}&rtt=auto&l=map&pt=${startPoint[1]},${startPoint[0]};${pickupCoords[1]},${pickupCoords[0]};${dropoffCoords[1]},${dropoffCoords[0]}`;
 
             // Открываем URL в новой вкладке
             window.open(yandexMapsUrl, '_blank');
@@ -395,6 +398,7 @@ const LocationPicker = () => {
             alert('Пожалуйста, установите координаты отправления и назначения.');
         }
     };
+
 
 
     return (
