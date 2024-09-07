@@ -41,7 +41,7 @@ const LocationPicker = () => {
     const mapRef = useRef(null); // Ссылка на экземпляр карты
     const [isTourOpen, setIsTourOpen] = useState(false);
     const [selectedTariff, setSelectedTariff] = useState(null);
-    const { tg } = useTelegram(); // используем хук для получения tg объекта
+    const { tg, user, userId, queryId } = useTelegram(); // используем хук для получения tg объекта
 
 
 
@@ -329,6 +329,9 @@ const LocationPicker = () => {
             dropoff,
             tariff: selectedTariff,
             distance: routeDistance,
+            user,
+            queryId,
+            userId
         };
 
         console.log("Данные для отправки:", orderData); // Логирование данных
@@ -350,7 +353,7 @@ const LocationPicker = () => {
             });
 
         tg.sendData(JSON.stringify(orderData));
-    }, [pickup, dropoff, selectedTariff, routeDistance, tg]);
+    }, [pickup, dropoff, selectedTariff, routeDistance, tg, user, queryId, userId]);
 
 
     useEffect(() => {
