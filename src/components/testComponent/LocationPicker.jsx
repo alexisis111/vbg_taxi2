@@ -442,7 +442,7 @@ const LocationPicker = () => {
                             <img className="object-cover" src={tariff.img} alt={`${tariff.name} Image`}/>
                             <div className="p-2 text-sm">
                                 <h3 className="font-bold mb-2">{tariff.name}</h3>
-                                <p className="text-gray-600">
+                                <p className="">
                                     {routeDistance
                                         ? `${tariff.calculatePrice(routeDistance)} рублей`
                                         : 'Сумма появится после указания маршрута'}
