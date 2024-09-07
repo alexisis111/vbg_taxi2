@@ -233,9 +233,18 @@ const LocationPicker = () => {
         }
     }, []);
 
+    const logCoordinates = (pickupCoords, dropoffCoords) => {
+        if (pickupCoords && dropoffCoords) {
+            console.log("Координаты отправления:", pickupCoords);
+            console.log("Координаты назначения:", dropoffCoords);
+        }
+    };
+
+// Обновляем useEffect для отслеживания изменений координат
     useEffect(() => {
         if (pickupCoords && dropoffCoords) {
             getRoute([pickupCoords, dropoffCoords]);
+            logCoordinates(pickupCoords, dropoffCoords); // Выводим координаты в консоль
         }
     }, [pickupCoords, dropoffCoords]);
 
@@ -372,6 +381,21 @@ const LocationPicker = () => {
         };
     }, [handleSendData, tg]);
 
+    const handleOpenYandexMaps = () => {
+        if (pickupCoords && dropoffCoords && routeCoords) {
+            // Преобразование маршрута в строку для Яндекс.Карт
+            const routeString = routeCoords.map(coord => `${coord[1]},${coord[0]}`).join('~');
+
+            // Формирование URL для Яндекс.Карт
+            const yandexMapsUrl = `https://yandex.ru/maps/?rtext=${pickupCoords[0]},${pickupCoords[1]}~${dropoffCoords[0]},${dropoffCoords[1]}&rtt=auto&l=map&pt=${pickupCoords[1]},${pickupCoords[0]};${dropoffCoords[1]},${dropoffCoords[0]}`;
+
+            // Открываем URL в новой вкладке
+            window.open(yandexMapsUrl, '_blank');
+        } else {
+            alert('Пожалуйста, установите координаты отправления и назначения.');
+        }
+    };
+
 
     return (
         <>
@@ -446,7 +470,7 @@ const LocationPicker = () => {
                         />
                     )}
                     {routeCoords && (
-                        <Polyline positions={routeCoords} color="blue" weight={5} />
+                        <Polyline positions={routeCoords} color="blue" weight={5}/>
                     )}
 
                     <LocationMarker/>
@@ -517,6 +541,12 @@ const LocationPicker = () => {
                     ))}
                 </div>
             </div>
+            <button
+                onClick={handleOpenYandexMaps}
+                className="mt-4 px-4 py-2 bg-blue-500 text-white rounded-lg shadow-md"
+            >
+                Открыть в Яндекс.Картах
+            </button>
         </>
     );
 };
