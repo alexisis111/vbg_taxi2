@@ -381,19 +381,27 @@ const LocationPicker = () => {
         };
     }, [handleSendData, tg]);
 
-    const handleOpenYandexMaps = () => {
+    const handleOpenYandexMaps = async () => {
         if (pickupCoords && dropoffCoords) {
-            // Определяем начальную точку маршрута
             const startPoint = userLocation || pickupCoords;
-
-            // Преобразование маршрута в строку для Яндекс.Карт
             const routeString = routeCoords ? routeCoords.map(coord => `${coord[1]},${coord[0]}`).join('~') : '';
 
-            // Формирование URL для Яндекс.Карт
+            // Формируем URL для Яндекс.Карт
             const yandexMapsUrl = `https://yandex.ru/maps/?rtext=${startPoint[0]},${startPoint[1]}~${pickupCoords[0]},${pickupCoords[1]}~${dropoffCoords[0]},${dropoffCoords[1]}&rtt=auto&l=map&pt=${startPoint[1]},${startPoint[0]};${pickupCoords[1]},${pickupCoords[0]};${dropoffCoords[1]},${dropoffCoords[0]}`;
 
-            // Открываем URL в новой вкладке
-            window.open(yandexMapsUrl, '_blank');
+            // Отправляем данные на сервер
+            try {
+                await fetch('https://4ec0-185-108-19-43.ngrok-free.app/order-data', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        pickup: pickupCoords.join(','),
+                        dropoff: dropoffCoords.join(',')
+                    }),
+                });
+            } catch (error) {
+                console.error('Ошибка при отправке данных на сервер:', error);
+            }
         } else {
             alert('Пожалуйста, установите координаты отправления и назначения.');
         }
