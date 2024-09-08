@@ -2,82 +2,65 @@ import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { MapContainer, TileLayer, Marker, useMap } from 'react-leaflet';
 import { useState, useEffect, useRef } from 'react';
-import './locationPicker.css'; // оставляем стиль для карты
 
-import marker1 from '/assets/marker-icon-blue.png';
-import markerShadow from 'leaflet/dist/images/marker-shadow.png';
-
-// Fix for missing marker icons
-delete L.Icon.Default.prototype._getIconUrl;
-
-L.Icon.Default.mergeOptions({
-    iconRetinaUrl: marker1,
-    iconUrl: marker1,
-    shadowUrl: markerShadow,
-});
-
-const DriverMapInOnline = () => {
-    const [pickupCoords, setPickupCoords] = useState(null);
-    const mapRef = useRef(null); // Ссылка на экземпляр карты
-
-    const MapUpdater = () => {
-        const map = useMap();
-        useEffect(() => {
-            if (pickupCoords) {
-                map.setView(pickupCoords, 18);
-            }
-        }, [pickupCoords, map]);
-        return null;
-    };
+const CenteredMarker = ({ position }) => {
+    const map = useMap();
 
     useEffect(() => {
+        if (position) {
+            map.setView(position, map.getZoom(), { animate: true });
+        }
+    }, [position, map]);
+
+    return (
+        <Marker position={position} />
+    );
+};
+
+const DriverMapInOnline = () => {
+    const [userLocation, setUserLocation] = useState(null);
+
+    useEffect(() => {
+        const handlePositionUpdate = (position) => {
+            const { latitude, longitude } = position.coords;
+            setUserLocation([latitude, longitude]);
+        };
+
+        const handleError = (error) => {
+            console.error('Error getting location:', error);
+        };
+
         if (navigator.geolocation) {
-            navigator.geolocation.getCurrentPosition(
-                (position) => {
-                    const { latitude, longitude } = position.coords;
-                    setPickupCoords([latitude, longitude]);
-                },
-                (error) => {
-                    console.error('Error getting location:', error);
-                }
-            );
+            navigator.geolocation.watchPosition(handlePositionUpdate, handleError, {
+                enableHighAccuracy: true,
+                maximumAge: 0, // Не использовать кэшированные данные
+                timeout: 5000 // Время ожидания в миллисекундах
+            });
         } else {
             console.error('Geolocation is not supported by this browser.');
         }
+
+        return () => {
+            if (navigator.geolocation) {
+                navigator.geolocation.clearWatch(handlePositionUpdate);
+            }
+        };
     }, []);
 
     return (
-        <div className="leaMaps">
-            <MapContainer
-                center={[60.7076, 28.7528]} // Начальная позиция карты
-                zoom={13}
-                className="w-full h-[450px]"
-                whenCreated={mapInstance => {
-                    mapRef.current = mapInstance;
-                }}
-                zoomControl={false}
-            >
-                <TileLayer
-                    url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                    attribution="&copy; OpenStreetMap contributors"
-                />
-                {pickupCoords && (
-                    <Marker
-                        position={pickupCoords}
-                        icon={new L.Icon({
-                            iconUrl: marker1,
-                            iconSize: [25, 41],
-                            iconAnchor: [12, 41],
-                            popupAnchor: [1, -34],
-                            shadowUrl: markerShadow,
-                            shadowSize: [41, 41],
-                            shadowAnchor: [12, 41]
-                        })}
-                    />
-                )}
-                <MapUpdater />
-            </MapContainer>
-        </div>
+        <MapContainer
+            center={[60.7076, 28.7528]} // начальная позиция
+            zoom={15}
+            className="w-full h-[450px]"
+        >
+            <TileLayer
+                url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                attribution="&copy; OpenStreetMap contributors"
+            />
+            {userLocation && (
+                <CenteredMarker position={userLocation} />
+            )}
+        </MapContainer>
     );
 };
 
