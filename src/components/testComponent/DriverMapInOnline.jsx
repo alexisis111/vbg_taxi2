@@ -19,6 +19,7 @@ const DriverMapInOnline = () => {
     const [userLocation, setUserLocation] = useState(null);
     const [lastLocation, setLastLocation] = useState(null);
     const [locationChange, setLocationChange] = useState('');
+    const [permissionGranted, setPermissionGranted] = useState(false); // Для отслеживания разрешения
     const watchId = useRef(null);
 
     useEffect(() => {
@@ -38,28 +39,19 @@ const DriverMapInOnline = () => {
             console.error('Error getting location:', error);
         };
 
-        const askForGeolocation = () => {
-            if (navigator.geolocation) {
-                watchId.current = navigator.geolocation.watchPosition(handlePositionUpdate, handleError, {
-                    enableHighAccuracy: true,
-                    maximumAge: 0,
-                    timeout: 5000
-                });
-            } else {
-                console.error('Geolocation is not supported by this browser.');
-            }
-        };
-
-        // Проверяем, есть ли флаг о разрешении геолокации в localStorage
-        const hasPermission = localStorage.getItem('geolocation_permission');
-
-        if (!hasPermission) {
-            // Запрашиваем геолокацию и сохраняем флаг при первом успешном разрешении
-            askForGeolocation();
-            localStorage.setItem('geolocation_permission', 'granted');
-        } else {
-            // Если разрешение уже было дано, просто обновляем координаты без запроса
-            askForGeolocation();
+        if (navigator.geolocation && !permissionGranted) {
+            navigator.permissions.query({ name: 'geolocation' }).then((result) => {
+                if (result.state === 'granted') {
+                    setPermissionGranted(true);
+                    watchId.current = navigator.geolocation.watchPosition(handlePositionUpdate, handleError, {
+                        enableHighAccuracy: true,
+                        maximumAge: 0,
+                        timeout: 5000
+                    });
+                } else if (result.state === 'prompt') {
+                    navigator.geolocation.getCurrentPosition(handlePositionUpdate, handleError);
+                }
+            });
         }
 
         return () => {
@@ -67,7 +59,7 @@ const DriverMapInOnline = () => {
                 navigator.geolocation.clearWatch(watchId.current);
             }
         };
-    }, [userLocation, lastLocation]);
+    }, [userLocation, lastLocation, permissionGranted]);
 
     return (
         <div className="map-container">
