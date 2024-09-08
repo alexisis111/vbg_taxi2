@@ -59,7 +59,7 @@ const DriverMapInOnline = () => {
         <div className="map-container">
             <MapContainer
                 center={[60.7076, 28.7528]}
-                zoom={13}
+                zoom={15}
                 className="w-full h-[450px]"
             >
                 <TileLayer
@@ -70,7 +70,7 @@ const DriverMapInOnline = () => {
                     <CenteredMarker position={userLocation} />
                 )}
             </MapContainer>
-            <div className="location-status mt-2 p-2 bg-gray-100 border border-gray-300 rounded">
+            <div className="location-status mt-2 p-2 border border-blue-800 rounded">
                 {locationChange || 'Геолокация не обновлялась'}
             </div>
         </div>
