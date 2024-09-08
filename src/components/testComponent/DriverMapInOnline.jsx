@@ -38,14 +38,28 @@ const DriverMapInOnline = () => {
             console.error('Error getting location:', error);
         };
 
-        if (navigator.geolocation) {
-            watchId.current = navigator.geolocation.watchPosition(handlePositionUpdate, handleError, {
-                enableHighAccuracy: true,
-                maximumAge: 0,
-                timeout: 5000
-            });
+        const askForGeolocation = () => {
+            if (navigator.geolocation) {
+                watchId.current = navigator.geolocation.watchPosition(handlePositionUpdate, handleError, {
+                    enableHighAccuracy: true,
+                    maximumAge: 0,
+                    timeout: 5000
+                });
+            } else {
+                console.error('Geolocation is not supported by this browser.');
+            }
+        };
+
+        // Проверяем, есть ли флаг о разрешении геолокации в localStorage
+        const hasPermission = localStorage.getItem('geolocation_permission');
+
+        if (!hasPermission) {
+            // Запрашиваем геолокацию и сохраняем флаг при первом успешном разрешении
+            askForGeolocation();
+            localStorage.setItem('geolocation_permission', 'granted');
         } else {
-            console.error('Geolocation is not supported by this browser.');
+            // Если разрешение уже было дано, просто обновляем координаты без запроса
+            askForGeolocation();
         }
 
         return () => {
