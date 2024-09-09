@@ -30,7 +30,13 @@ const DriverMapInOnline = () => {
             try {
                 const response = await axios.get('https://aacd-176-59-12-8.ngrok-free.app/active-orders');
                 const orders = Array.isArray(response.data) ? response.data : []; // Проверка, что данные - массив
-                setActiveOrders(orders);
+
+                // Сохраняем только заказы, которые не отменены
+                setActiveOrders(prevOrders => {
+                    const updatedOrders = Array.isArray(prevOrders) ? prevOrders : [];
+                    const activeOrders = orders.filter(order => order.status !== 'отменен');
+                    return activeOrders;
+                });
             } catch (error) {
                 console.error('Error fetching active orders:', error);
                 setActiveOrders([]); // В случае ошибки сохраняем пустой массив
@@ -65,10 +71,12 @@ const DriverMapInOnline = () => {
                         const newOrder = JSON.parse(text);
                         console.log('Parsed JSON:', newOrder);
 
+                        // Обновляем состояние активных заказов
                         setActiveOrders(prevOrders => {
-                            const updatedOrders = Array.isArray(prevOrders) ? prevOrders : []; // Проверяем, что предыдущие заказы - массив
+                            const updatedOrders = Array.isArray(prevOrders) ? prevOrders : [];
                             const existingOrderIndex = updatedOrders.findIndex(order => order.orderId === newOrder.orderId);
 
+                            // Если заказ уже существует, обновляем его данные
                             if (existingOrderIndex === -1) {
                                 return [...updatedOrders, newOrder];
                             } else {
@@ -87,10 +95,12 @@ const DriverMapInOnline = () => {
                     console.log('Received non-Blob data:', event.data);
                     const newOrder = JSON.parse(event.data);
 
+                    // Обновляем состояние активных заказов
                     setActiveOrders(prevOrders => {
-                        const updatedOrders = Array.isArray(prevOrders) ? prevOrders : []; // Проверяем, что предыдущие заказы - массив
+                        const updatedOrders = Array.isArray(prevOrders) ? prevOrders : [];
                         const existingOrderIndex = updatedOrders.findIndex(order => order.orderId === newOrder.orderId);
 
+                        // Если заказ уже существует, обновляем его данные
                         if (existingOrderIndex === -1) {
                             return [...updatedOrders, newOrder];
                         } else {
