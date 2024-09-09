@@ -17,87 +17,36 @@ const CenteredMarker = ({ position }) => {
 
 const DriverMapInOnline = () => {
     const [userLocation, setUserLocation] = useState(null);
-    const [lastLocation, setLastLocation] = useState(null);
-    const [locationChange, setLocationChange] = useState('');
-    const watchId = useRef(null);
-    const [permissionGranted, setPermissionGranted] = useState(false);
+    const [orderInfo, setOrderInfo] = useState(null);
+    const wsRef = useRef(null);
 
     useEffect(() => {
-        const intervalId = setInterval(() => {
-            // Простая операция, например, обновление состояния
-            setUserLocation(prev => [...prev]);
-        }, 60000); // Обновляем каждую минуту
+        wsRef.current = new WebSocket('ws://localhost:8080');
 
-        return () => clearInterval(intervalId);
-    }, []);
-
-
-
-    useEffect(() => {
-        const handlePositionUpdate = (position) => {
-            const { latitude, longitude } = position.coords;
-            setUserLocation([latitude, longitude]);
-            setLastLocation([latitude, longitude]);
-            setLocationChange(`Геолокация изменилась на ${latitude.toFixed(6)}, ${longitude.toFixed(6)}`);
+        wsRef.current.onopen = () => {
+            console.log('Connected to WebSocket server');
         };
 
-        const handleError = (error) => {
-            console.error('Error getting location:', error);
+        wsRef.current.onmessage = (event) => {
+            const data = JSON.parse(event.data);
+            console.log('Received order data:', data);
+            setOrderInfo(data);
         };
 
-        const startGeolocationWatch = () => {
-            if (navigator.geolocation && !watchId.current) {
-                watchId.current = navigator.geolocation.watchPosition(handlePositionUpdate, handleError, {
-                    enableHighAccuracy: true,
-                    maximumAge: 0,
-                    timeout: 5000
-                });
-            }
+        wsRef.current.onclose = () => {
+            console.log('Disconnected from WebSocket server');
         };
 
-        const stopGeolocationWatch = () => {
-            if (watchId.current) {
-                navigator.geolocation.clearWatch(watchId.current);
-                watchId.current = null;
-            }
+        wsRef.current.onerror = (error) => {
+            console.error('WebSocket error:', error);
         };
-
-        const handleVisibilityChange = () => {
-            if (document.visibilityState === 'visible') {
-                startGeolocationWatch();
-            } else {
-                stopGeolocationWatch();
-            }
-        };
-
-        document.addEventListener('visibilitychange', handleVisibilityChange);
-
-        // Проверка наличия разрешения в localStorage
-        const hasPermission = localStorage.getItem('geolocation_permission');
-
-        if (!hasPermission) {
-            navigator.permissions.query({ name: 'geolocation' }).then((result) => {
-                if (result.state === 'granted') {
-                    localStorage.setItem('geolocation_permission', 'granted');
-                    setPermissionGranted(true); // Установим флаг разрешения
-                    startGeolocationWatch();
-                } else if (result.state === 'prompt') {
-                    if (!permissionGranted) {
-                        // Запрашиваем разрешение только если оно еще не было дано
-                        startGeolocationWatch();
-                    }
-                }
-            });
-        } else {
-            setPermissionGranted(true);
-            startGeolocationWatch();
-        }
 
         return () => {
-            document.removeEventListener('visibilitychange', handleVisibilityChange);
-            stopGeolocationWatch();
+            if (wsRef.current) {
+                wsRef.current.close();
+            }
         };
-    }, [permissionGranted]);
+    }, []);
 
     return (
         <div className="map-container">
@@ -113,9 +62,26 @@ const DriverMapInOnline = () => {
                 {userLocation && (
                     <CenteredMarker position={userLocation} />
                 )}
+                {orderInfo && (
+                    <>
+                        <CenteredMarker position={orderInfo.pickupCoords} />
+                        <CenteredMarker position={orderInfo.dropoffCoords} />
+                    </>
+                )}
             </MapContainer>
-            <div className="location-status mt-2 p-2 bg-gray-100 border border-gray-300 rounded">
-                {locationChange || 'Геолокация не обновлялась'}
+            <div className="order-info mt-2 p-2 bg-gray-100 border border-gray-300 rounded">
+                {orderInfo ? (
+                    <>
+                        <h3>Информация о заказе</h3>
+                        <p>Откуда: {orderInfo.pickup}</p>
+                        <p>Куда: {orderInfo.dropoff}</p>
+                        <p>Расстояние: {orderInfo.distance} км</p>
+                        <p>Тариф: {orderInfo.tariff}</p>
+                        <p>Цена: {orderInfo.price} рублей</p>
+                    </>
+                ) : (
+                    'Информация о заказе не получена'
+                )}
             </div>
         </div>
     );
