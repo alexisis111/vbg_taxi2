@@ -19,19 +19,63 @@ const DriverMapInOnline = () => {
     const [userLocation, setUserLocation] = useState(null);
     const [lastLocation, setLastLocation] = useState(null);
     const [locationChange, setLocationChange] = useState('');
-    const watchId = useRef(null);
+    const ws = useRef(null);
+
+    useEffect(() => {
+        // Устанавливаем WebSocket соединение один раз
+        if (!ws.current) {
+            ws.current = new WebSocket('ws://localhost:8080');
+
+            ws.current.onopen = () => {
+                console.log('WebSocket connection opened');
+            };
+
+            ws.current.onmessage = (message) => {
+                try {
+                    const data = JSON.parse(message.data);
+                    console.log('Received data from server:', data);
+                } catch (error) {
+                    console.error('Error parsing message:', error);
+                }
+            };
+
+            ws.current.onerror = (error) => {
+                console.error('WebSocket error:', error);
+            };
+
+            ws.current.onclose = () => {
+                console.log('WebSocket connection closed');
+            };
+        }
+
+        return () => {
+            if (ws.current) {
+                ws.current.close();
+            }
+        };
+    }, []);
+
+    const sendLocation = (latitude, longitude) => {
+        // Проверяем, изменились ли координаты
+        if (
+            !lastLocation ||
+            lastLocation[0] !== latitude ||
+            lastLocation[1] !== longitude
+        ) {
+            setLastLocation([latitude, longitude]);
+
+            if (ws.current && ws.current.readyState === WebSocket.OPEN) {
+                ws.current.send(JSON.stringify({ latitude, longitude }));
+            }
+        }
+    };
 
     useEffect(() => {
         const handlePositionUpdate = (position) => {
             const { latitude, longitude } = position.coords;
-            if (userLocation && lastLocation) {
-                const distance = L.latLng(userLocation).distanceTo([latitude, longitude]);
-                if (distance > 1) { // Обновление, если перемещение больше 1 метра
-                    setLocationChange(`Геолокация изменилась на ${latitude.toFixed(6)}, ${longitude.toFixed(6)}`);
-                }
-            }
-            setLastLocation(userLocation);
             setUserLocation([latitude, longitude]);
+            sendLocation(latitude, longitude);
+            setLocationChange(`Геолокация изменилась на ${latitude.toFixed(6)}, ${longitude.toFixed(6)}`);
         };
 
         const handleError = (error) => {
@@ -39,7 +83,7 @@ const DriverMapInOnline = () => {
         };
 
         if (navigator.geolocation) {
-            watchId.current = navigator.geolocation.watchPosition(handlePositionUpdate, handleError, {
+            navigator.geolocation.watchPosition(handlePositionUpdate, handleError, {
                 enableHighAccuracy: true,
                 maximumAge: 0,
                 timeout: 5000
@@ -47,13 +91,7 @@ const DriverMapInOnline = () => {
         } else {
             console.error('Geolocation is not supported by this browser.');
         }
-
-        return () => {
-            if (watchId.current) {
-                navigator.geolocation.clearWatch(watchId.current);
-            }
-        };
-    }, [userLocation, lastLocation]);
+    }, [lastLocation]);
 
     return (
         <div className="map-container">
