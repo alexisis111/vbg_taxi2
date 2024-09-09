@@ -1,7 +1,7 @@
+import { useState, useEffect, useRef } from 'react';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { MapContainer, TileLayer, Marker, useMap } from 'react-leaflet';
-import { useState, useEffect, useRef } from 'react';
 
 const CenteredMarker = ({ position }) => {
     const map = useMap();
@@ -17,33 +17,114 @@ const CenteredMarker = ({ position }) => {
 
 const DriverMapInOnline = () => {
     const [userLocation, setUserLocation] = useState(null);
-    const [orderInfo, setOrderInfo] = useState(null);
-    const wsRef = useRef(null);
+    const [lastLocation, setLastLocation] = useState(null);
+    const [locationChange, setLocationChange] = useState('');
+    const [order, setOrder] = useState(null); // Состояние для хранения информации о заказе
+    const watchId = useRef(null);
+    const [permissionGranted, setPermissionGranted] = useState(false);
+    const wsClient = useRef(null); // WebSocket клиент
 
     useEffect(() => {
-        wsRef.current = new WebSocket('ws://localhost:8080');
+        const intervalId = setInterval(() => {
+            // Простая операция, например, обновление состояния
+            setUserLocation(prev => [...prev]);
+        }, 60000); // Обновляем каждую минуту
 
-        wsRef.current.onopen = () => {
+        return () => clearInterval(intervalId);
+    }, []);
+
+    useEffect(() => {
+        const handlePositionUpdate = (position) => {
+            const { latitude, longitude } = position.coords;
+            setUserLocation([latitude, longitude]);
+            setLastLocation([latitude, longitude]);
+            setLocationChange(`Геолокация изменилась на ${latitude.toFixed(6)}, ${longitude.toFixed(6)}`);
+        };
+
+        const handleError = (error) => {
+            console.error('Error getting location:', error);
+        };
+
+        const startGeolocationWatch = () => {
+            if (navigator.geolocation && !watchId.current) {
+                watchId.current = navigator.geolocation.watchPosition(handlePositionUpdate, handleError, {
+                    enableHighAccuracy: true,
+                    maximumAge: 0,
+                    timeout: 5000
+                });
+            }
+        };
+
+        const stopGeolocationWatch = () => {
+            if (watchId.current) {
+                navigator.geolocation.clearWatch(watchId.current);
+                watchId.current = null;
+            }
+        };
+
+        const handleVisibilityChange = () => {
+            if (document.visibilityState === 'visible') {
+                startGeolocationWatch();
+            } else {
+                stopGeolocationWatch();
+            }
+        };
+
+        document.addEventListener('visibilitychange', handleVisibilityChange);
+
+        // Проверка наличия разрешения в localStorage
+        const hasPermission = localStorage.getItem('geolocation_permission');
+
+        if (!hasPermission) {
+            navigator.permissions.query({ name: 'geolocation' }).then((result) => {
+                if (result.state === 'granted') {
+                    localStorage.setItem('geolocation_permission', 'granted');
+                    setPermissionGranted(true); // Установим флаг разрешения
+                    startGeolocationWatch();
+                } else if (result.state === 'prompt') {
+                    if (!permissionGranted) {
+                        // Запрашиваем разрешение только если оно еще не было дано
+                        startGeolocationWatch();
+                    }
+                }
+            });
+        } else {
+            setPermissionGranted(true);
+            startGeolocationWatch();
+        }
+
+        return () => {
+            document.removeEventListener('visibilitychange', handleVisibilityChange);
+            stopGeolocationWatch();
+        };
+    }, [permissionGranted]);
+
+    useEffect(() => {
+        // Инициализация WebSocket клиента
+        wsClient.current = new WebSocket('ws://localhost:8080');
+
+        wsClient.current.onopen = () => {
             console.log('Connected to WebSocket server');
         };
 
-        wsRef.current.onmessage = (event) => {
+        wsClient.current.onmessage = (event) => {
             const data = JSON.parse(event.data);
-            console.log('Received order data:', data);
-            setOrderInfo(data);
+            if (data.order) {
+                setOrder(data.order); // Обновляем состояние с информацией о заказе
+            }
         };
 
-        wsRef.current.onclose = () => {
-            console.log('Disconnected from WebSocket server');
-        };
-
-        wsRef.current.onerror = (error) => {
+        wsClient.current.onerror = (error) => {
             console.error('WebSocket error:', error);
         };
 
+        wsClient.current.onclose = () => {
+            console.log('WebSocket connection closed');
+        };
+
         return () => {
-            if (wsRef.current) {
-                wsRef.current.close();
+            if (wsClient.current) {
+                wsClient.current.close();
             }
         };
     }, []);
@@ -62,27 +143,20 @@ const DriverMapInOnline = () => {
                 {userLocation && (
                     <CenteredMarker position={userLocation} />
                 )}
-                {orderInfo && (
-                    <>
-                        <CenteredMarker position={orderInfo.pickupCoords} />
-                        <CenteredMarker position={orderInfo.dropoffCoords} />
-                    </>
-                )}
             </MapContainer>
-            <div className="order-info mt-2 p-2 bg-gray-100 border border-gray-300 rounded">
-                {orderInfo ? (
-                    <>
-                        <h3>Информация о заказе</h3>
-                        <p>Откуда: {orderInfo.pickup}</p>
-                        <p>Куда: {orderInfo.dropoff}</p>
-                        <p>Расстояние: {orderInfo.distance} км</p>
-                        <p>Тариф: {orderInfo.tariff}</p>
-                        <p>Цена: {orderInfo.price} рублей</p>
-                    </>
-                ) : (
-                    'Информация о заказе не получена'
-                )}
+            <div className="location-status mt-2 p-2 bg-gray-100 border border-gray-300 rounded">
+                {locationChange || 'Геолокация не обновлялась'}
             </div>
+            {order && (
+                <div className="order-info mt-2 p-2 bg-blue-100 border border-blue-300 rounded">
+                    <h3 className="font-bold">Новый заказ</h3>
+                    <p><strong>Адрес отправления:</strong> {order.pickup}</p>
+                    <p><strong>Адрес назначения:</strong> {order.dropoff}</p>
+                    <p><strong>Тариф:</strong> {order.tariff}</p>
+                    <p><strong>Расстояние:</strong> {order.distance} км</p>
+                    <p><strong>Стоимость:</strong> {order.price} ₽</p>
+                </div>
+            )}
         </div>
     );
 };
