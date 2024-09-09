@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { MapContainer, TileLayer, Marker, useMap } from 'react-leaflet';
+import axios from "axios";
 
 const CenteredMarker = ({ position }) => {
     const map = useMap();
