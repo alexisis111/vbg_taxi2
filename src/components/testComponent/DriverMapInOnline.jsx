@@ -20,6 +20,7 @@ const DriverMapInOnline = () => {
     const [lastLocation, setLastLocation] = useState(null);
     const [locationChange, setLocationChange] = useState('');
     const watchId = useRef(null);
+    const [permissionGranted, setPermissionGranted] = useState(false);
 
     useEffect(() => {
         const handlePositionUpdate = (position) => {
@@ -34,16 +35,12 @@ const DriverMapInOnline = () => {
         };
 
         const startGeolocationWatch = () => {
-            if (navigator.geolocation) {
-                if (!watchId.current) {
-                    watchId.current = navigator.geolocation.watchPosition(handlePositionUpdate, handleError, {
-                        enableHighAccuracy: true,
-                        maximumAge: 0,
-                        timeout: 5000
-                    });
-                }
-            } else {
-                console.error('Geolocation is not supported by this browser.');
+            if (navigator.geolocation && !watchId.current) {
+                watchId.current = navigator.geolocation.watchPosition(handlePositionUpdate, handleError, {
+                    enableHighAccuracy: true,
+                    maximumAge: 0,
+                    timeout: 5000
+                });
             }
         };
 
@@ -64,19 +61,24 @@ const DriverMapInOnline = () => {
 
         document.addEventListener('visibilitychange', handleVisibilityChange);
 
-        // Проверка и установка разрешения на геолокацию
+        // Проверка наличия разрешения в localStorage
         const hasPermission = localStorage.getItem('geolocation_permission');
+
         if (!hasPermission) {
             navigator.permissions.query({ name: 'geolocation' }).then((result) => {
                 if (result.state === 'granted') {
                     localStorage.setItem('geolocation_permission', 'granted');
+                    setPermissionGranted(true); // Установим флаг разрешения
                     startGeolocationWatch();
-                } else {
-                    // Если разрешение не было дано, снова запросим его
-                    startGeolocationWatch();
+                } else if (result.state === 'prompt') {
+                    if (!permissionGranted) {
+                        // Запрашиваем разрешение только если оно еще не было дано
+                        startGeolocationWatch();
+                    }
                 }
             });
         } else {
+            setPermissionGranted(true);
             startGeolocationWatch();
         }
 
@@ -84,7 +86,7 @@ const DriverMapInOnline = () => {
             document.removeEventListener('visibilitychange', handleVisibilityChange);
             stopGeolocationWatch();
         };
-    }, []);
+    }, [permissionGranted]);
 
     return (
         <div className="map-container">
