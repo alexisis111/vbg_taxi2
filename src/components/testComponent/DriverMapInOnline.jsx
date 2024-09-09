@@ -1,5 +1,4 @@
 import { useState, useEffect, useRef } from 'react';
-import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { MapContainer, TileLayer, Marker, useMap } from 'react-leaflet';
 import axios from "axios";
@@ -20,42 +19,107 @@ const DriverMapInOnline = () => {
     const [userLocation, setUserLocation] = useState(null);
     const [lastLocation, setLastLocation] = useState(null);
     const [locationChange, setLocationChange] = useState('');
-    const [order, setOrder] = useState(null); // Состояние для хранения информации о заказе
+    const [activeOrders, setActiveOrders] = useState([]); // Инициализация как пустой массив
     const watchId = useRef(null);
     const [permissionGranted, setPermissionGranted] = useState(false);
     const wsClient = useRef(null); // WebSocket клиент
-    const [activeOrders, setActiveOrders] = useState([]); // Для хранения активных заказов
-//проверка активных заказов
+
+    // Получение активных заказов при монтировании компонента
     useEffect(() => {
         const fetchActiveOrders = async () => {
             try {
                 const response = await axios.get('https://aacd-176-59-12-8.ngrok-free.app/active-orders');
-                setActiveOrders(response.data);
+                const orders = Array.isArray(response.data) ? response.data : []; // Проверка, что данные - массив
+                setActiveOrders(orders);
             } catch (error) {
                 console.error('Error fetching active orders:', error);
+                setActiveOrders([]); // В случае ошибки сохраняем пустой массив
             }
         };
-
-        // Периодически обновляем активные заказы (каждые 30 секунд)
-        const intervalId = setInterval(fetchActiveOrders, 30000);
 
         // Первый вызов сразу после монтирования компонента
         fetchActiveOrders();
 
+        // Периодически обновляем активные заказы (каждые 30 секунд)
+        const intervalId = setInterval(fetchActiveOrders, 30000);
+
         return () => clearInterval(intervalId); // Очищаем интервал при размонтировании компонента
     }, []);
 
+    // Подключение к WebSocket
     useEffect(() => {
-        const intervalId = setInterval(() => {
-            // Если нужно обновлять состояние, даже если нет изменений
-            if (userLocation) {
-                setUserLocation(prev => [...prev]);
+        wsClient.current = new WebSocket('ws://localhost:8080');
+
+        wsClient.current.onopen = () => {
+            console.log('Connected to WebSocket server');
+        };
+
+        wsClient.current.onmessage = (event) => {
+            console.log('Message received from WebSocket server:', event.data);
+
+            if (event.data instanceof Blob) {
+                console.log('Received Blob, converting to text...');
+                event.data.text().then(text => {
+                    console.log('Blob converted to text:', text);
+                    try {
+                        const newOrder = JSON.parse(text);
+                        console.log('Parsed JSON:', newOrder);
+
+                        setActiveOrders(prevOrders => {
+                            const updatedOrders = Array.isArray(prevOrders) ? prevOrders : []; // Проверяем, что предыдущие заказы - массив
+                            const existingOrderIndex = updatedOrders.findIndex(order => order.orderId === newOrder.orderId);
+
+                            if (existingOrderIndex === -1) {
+                                return [...updatedOrders, newOrder];
+                            } else {
+                                updatedOrders[existingOrderIndex] = newOrder;
+                                return updatedOrders;
+                            }
+                        });
+                    } catch (error) {
+                        console.error('Error parsing WebSocket message:', error);
+                    }
+                }).catch(error => {
+                    console.error('Error converting Blob to text:', error);
+                });
+            } else {
+                try {
+                    console.log('Received non-Blob data:', event.data);
+                    const newOrder = JSON.parse(event.data);
+
+                    setActiveOrders(prevOrders => {
+                        const updatedOrders = Array.isArray(prevOrders) ? prevOrders : []; // Проверяем, что предыдущие заказы - массив
+                        const existingOrderIndex = updatedOrders.findIndex(order => order.orderId === newOrder.orderId);
+
+                        if (existingOrderIndex === -1) {
+                            return [...updatedOrders, newOrder];
+                        } else {
+                            updatedOrders[existingOrderIndex] = newOrder;
+                            return updatedOrders;
+                        }
+                    });
+                } catch (error) {
+                    console.error('Error parsing WebSocket message:', error);
+                }
             }
-        }, 60000); // Обновляем каждую минуту
+        };
 
-        return () => clearInterval(intervalId);
-    }, [userLocation]);
+        wsClient.current.onerror = (error) => {
+            console.error('WebSocket error:', error);
+        };
 
+        wsClient.current.onclose = () => {
+            console.log('WebSocket connection closed');
+        };
+
+        return () => {
+            if (wsClient.current) {
+                wsClient.current.close();
+            }
+        };
+    }, []);
+
+    // Работа с геолокацией
     useEffect(() => {
         const handlePositionUpdate = (position) => {
             const { latitude, longitude } = position.coords;
@@ -109,7 +173,6 @@ const DriverMapInOnline = () => {
                     }
                 }
             }).catch(() => {
-                // Обработка случая, если `navigator.permissions.query` не поддерживается
                 startGeolocationWatch();
             });
         } else {
@@ -122,70 +185,6 @@ const DriverMapInOnline = () => {
             stopGeolocationWatch();
         };
     }, [permissionGranted]);
-
-    useEffect(() => {
-        wsClient.current = new WebSocket('ws://localhost:8080');
-
-        wsClient.current.onopen = () => {
-            console.log('Connected to WebSocket server');
-        };
-
-        wsClient.current.onmessage = (event) => {
-            console.log('Message received from WebSocket server:', event.data);
-
-            // Проверяем, является ли событие Blob-ом
-            if (event.data instanceof Blob) {
-                console.log('Received Blob, converting to text...');
-                event.data.text().then(text => {
-                    console.log('Blob converted to text:', text);
-                    try {
-                        const data = JSON.parse(text);
-                        console.log('Parsed JSON:', data);
-
-                        // Нет свойства `order`, просто устанавливаем данные заказа напрямую
-                        setOrder(data);
-                        console.log('Order set in state:', data);
-
-                    } catch (error) {
-                        console.error('Error parsing WebSocket message:', error);
-                    }
-                }).catch(error => {
-                    console.error('Error converting Blob to text:', error);
-                });
-            } else {
-                // Обработка случая, когда данные не являются Blob-ом
-                try {
-                    console.log('Received non-Blob data:', event.data);
-                    const data = JSON.parse(event.data);
-
-                    // Устанавливаем данные заказа напрямую
-                    setOrder(data);
-                    console.log('Order set in state:', data);
-
-                } catch (error) {
-                    console.error('Error parsing WebSocket message:', error);
-                }
-            }
-        };
-
-        wsClient.current.onerror = (error) => {
-            console.error('WebSocket error:', error);
-        };
-
-        wsClient.current.onclose = () => {
-            console.log('WebSocket connection closed');
-        };
-
-        return () => {
-            if (wsClient.current) {
-                wsClient.current.close();
-            }
-        };
-    }, []);
-
-
-
-
 
     return (
         <div className="map-container">
@@ -202,19 +201,28 @@ const DriverMapInOnline = () => {
                     <CenteredMarker position={userLocation} />
                 )}
             </MapContainer>
+
             <div className="location-status mt-2 p-2 bg-gray-100 border border-gray-300 rounded">
                 {locationChange || 'Геолокация не обновлялась'}
             </div>
-            {order && (
-                <div className="order-info mt-2 p-2 bg-blue-100 border border-blue-300 rounded">
-                    <h3 className="font-bold">Новый заказ</h3>
-                    <p><strong>Адрес отправления:</strong> {order.pickup}</p>
-                    <p><strong>Адрес назначения:</strong> {order.dropoff}</p>
-                    <p><strong>Тариф:</strong> {order.tariff}</p>
-                    <p><strong>Расстояние:</strong> {order.distance} км</p>
-                    <p><strong>Стоимость:</strong> {order.price} ₽</p>
-                </div>
-            )}
+
+            <h3 className="font-bold mt-4">Активные заказы</h3>
+            <ul className="order-list">
+                {Array.isArray(activeOrders) && activeOrders.length > 0 ? (
+                    activeOrders.map(order => (
+                        <li key={order.orderId} className="order-item p-2 bg-blue-100 border border-blue-300 rounded mb-2">
+                            <strong>Заказ №{order.orderId}</strong><br />
+                            <strong>Адрес отправления:</strong> {order.pickup}<br />
+                            <strong>Адрес назначения:</strong> {order.dropoff}<br />
+                            <strong>Тариф:</strong> {order.tariff}<br />
+                            <strong>Расстояние:</strong> {order.distance} км<br />
+                            <strong>Стоимость:</strong> {order.price} ₽
+                        </li>
+                    ))
+                ) : (
+                    <li>Нет активных заказов</li>
+                )}
+            </ul>
         </div>
     );
 };
