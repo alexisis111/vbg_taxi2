@@ -23,6 +23,26 @@ const DriverMapInOnline = () => {
     const watchId = useRef(null);
     const [permissionGranted, setPermissionGranted] = useState(false);
     const wsClient = useRef(null); // WebSocket клиент
+    const [activeOrders, setActiveOrders] = useState([]); // Для хранения активных заказов
+//проверка активных заказов
+    useEffect(() => {
+        const fetchActiveOrders = async () => {
+            try {
+                const response = await axios.get('https://aacd-176-59-12-8.ngrok-free.app/active-orders');
+                setActiveOrders(response.data);
+            } catch (error) {
+                console.error('Error fetching active orders:', error);
+            }
+        };
+
+        // Периодически обновляем активные заказы (каждые 30 секунд)
+        const intervalId = setInterval(fetchActiveOrders, 30000);
+
+        // Первый вызов сразу после монтирования компонента
+        fetchActiveOrders();
+
+        return () => clearInterval(intervalId); // Очищаем интервал при размонтировании компонента
+    }, []);
 
     useEffect(() => {
         const intervalId = setInterval(() => {
@@ -114,12 +134,17 @@ const DriverMapInOnline = () => {
 
             // Проверяем, является ли событие Blob-ом
             if (event.data instanceof Blob) {
+                console.log('Received Blob, converting to text...');
                 event.data.text().then(text => {
+                    console.log('Blob converted to text:', text);
                     try {
                         const data = JSON.parse(text);
-                        if (data.order) {
-                            setOrder(data.order);
-                        }
+                        console.log('Parsed JSON:', data);
+
+                        // Нет свойства `order`, просто устанавливаем данные заказа напрямую
+                        setOrder(data);
+                        console.log('Order set in state:', data);
+
                     } catch (error) {
                         console.error('Error parsing WebSocket message:', error);
                     }
@@ -129,10 +154,13 @@ const DriverMapInOnline = () => {
             } else {
                 // Обработка случая, когда данные не являются Blob-ом
                 try {
+                    console.log('Received non-Blob data:', event.data);
                     const data = JSON.parse(event.data);
-                    if (data.order) {
-                        setOrder(data.order);
-                    }
+
+                    // Устанавливаем данные заказа напрямую
+                    setOrder(data);
+                    console.log('Order set in state:', data);
+
                 } catch (error) {
                     console.error('Error parsing WebSocket message:', error);
                 }
@@ -153,6 +181,8 @@ const DriverMapInOnline = () => {
             }
         };
     }, []);
+
+
 
 
 
