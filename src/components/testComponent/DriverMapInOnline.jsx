@@ -26,12 +26,14 @@ const DriverMapInOnline = () => {
 
     useEffect(() => {
         const intervalId = setInterval(() => {
-            // Простая операция, например, обновление состояния
-            setUserLocation(prev => [...prev]);
+            // Если нужно обновлять состояние, даже если нет изменений
+            if (userLocation) {
+                setUserLocation(prev => [...prev]);
+            }
         }, 60000); // Обновляем каждую минуту
 
         return () => clearInterval(intervalId);
-    }, []);
+    }, [userLocation]);
 
     useEffect(() => {
         const handlePositionUpdate = (position) => {
@@ -72,21 +74,22 @@ const DriverMapInOnline = () => {
 
         document.addEventListener('visibilitychange', handleVisibilityChange);
 
-        // Проверка наличия разрешения в localStorage
         const hasPermission = localStorage.getItem('geolocation_permission');
 
         if (!hasPermission) {
             navigator.permissions.query({ name: 'geolocation' }).then((result) => {
                 if (result.state === 'granted') {
                     localStorage.setItem('geolocation_permission', 'granted');
-                    setPermissionGranted(true); // Установим флаг разрешения
+                    setPermissionGranted(true);
                     startGeolocationWatch();
                 } else if (result.state === 'prompt') {
                     if (!permissionGranted) {
-                        // Запрашиваем разрешение только если оно еще не было дано
                         startGeolocationWatch();
                     }
                 }
+            }).catch(() => {
+                // Обработка случая, если `navigator.permissions.query` не поддерживается
+                startGeolocationWatch();
             });
         } else {
             setPermissionGranted(true);
@@ -100,7 +103,6 @@ const DriverMapInOnline = () => {
     }, [permissionGranted]);
 
     useEffect(() => {
-        // Инициализация WebSocket клиента
         wsClient.current = new WebSocket('ws://localhost:8080');
 
         wsClient.current.onopen = () => {
@@ -108,9 +110,32 @@ const DriverMapInOnline = () => {
         };
 
         wsClient.current.onmessage = (event) => {
-            const data = JSON.parse(event.data);
-            if (data.order) {
-                setOrder(data.order); // Обновляем состояние с информацией о заказе
+            console.log('Message received from WebSocket server:', event.data);
+
+            // Проверяем, является ли событие Blob-ом
+            if (event.data instanceof Blob) {
+                event.data.text().then(text => {
+                    try {
+                        const data = JSON.parse(text);
+                        if (data.order) {
+                            setOrder(data.order);
+                        }
+                    } catch (error) {
+                        console.error('Error parsing WebSocket message:', error);
+                    }
+                }).catch(error => {
+                    console.error('Error converting Blob to text:', error);
+                });
+            } else {
+                // Обработка случая, когда данные не являются Blob-ом
+                try {
+                    const data = JSON.parse(event.data);
+                    if (data.order) {
+                        setOrder(data.order);
+                    }
+                } catch (error) {
+                    console.error('Error parsing WebSocket message:', error);
+                }
             }
         };
 
@@ -128,6 +153,8 @@ const DriverMapInOnline = () => {
             }
         };
     }, []);
+
+
 
     return (
         <div className="map-container">
