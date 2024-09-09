@@ -22,30 +22,13 @@ const DriverMapInOnline = () => {
     const watchId = useRef(null);
     const [permissionGranted, setPermissionGranted] = useState(false);
 
-    // Запрос блокировки экрана при монтировании компонента
     useEffect(() => {
-        let wakeLock = null;
+        const intervalId = setInterval(() => {
+            // Простая операция, например, обновление состояния
+            setUserLocation(prev => [...prev]);
+        }, 60000); // Обновляем каждую минуту
 
-        const requestWakeLock = async () => {
-            try {
-                wakeLock = await navigator.wakeLock.request('screen');
-                console.log('Screen Wake Lock is active');
-            } catch (err) {
-                console.error(`${err.name}, ${err.message}`);
-            }
-        };
-
-        requestWakeLock();
-
-        return () => {
-            if (wakeLock) {
-                wakeLock.release().then(() => {
-                    console.log('Screen Wake Lock is released');
-                }).catch(err => {
-                    console.error(`${err.name}, ${err.message}`);
-                });
-            }
-        };
+        return () => clearInterval(intervalId);
     }, []);
 
 
