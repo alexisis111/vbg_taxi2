@@ -51,7 +51,6 @@ const DriverMapInOnline = () => {
     }, []);
 
 
-
     // Подключение к WebSocket
     useEffect(() => {
         // Убедитесь, что используете wss для HTTPS-соединений
