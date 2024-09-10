@@ -47,7 +47,7 @@ console.log(orders)
         fetchActiveOrders();
 
         // Периодически обновляем активные заказы (каждые 30 секунд)
-        const intervalId = setInterval(fetchActiveOrders, 1000);
+        const intervalId = setInterval(fetchActiveOrders, 30000);
 
         return () => clearInterval(intervalId); // Очищаем интервал при размонтировании компонента
     }, []);
