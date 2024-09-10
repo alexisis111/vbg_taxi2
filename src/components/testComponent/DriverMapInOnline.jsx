@@ -25,32 +25,37 @@ const DriverMapInOnline = () => {
     useEffect(() => {
         const fetchActiveOrders = async () => {
             try {
-                const response = await axios.get('https://18ce-176-59-23-24.ngrok-free.app/active-orders');
-                const orders = response.data; // Берём данные из ответа
-                console.log("Полученные заказы:", orders);
-
-                // Проверяем и фильтруем только заказы, у которых canceled_at === null
-                const activeOrders = orders.filter(order => order.canceled_at === null);
-                setActiveOrders(activeOrders);
-
+                const response = await axios.get('https://18ce-176-59-23-24.ngrok-free.app/active-orders', {
+                    headers: {
+                        "Content-Type": "application/json",
+                        "ngrok-skip-browser-warning": "true"
+                    }
+                });
+                // Проверяем, что сервер возвращает JSON
+                if (response.headers['content-type'].includes('application/json')) {
+                    const orders = response.data;
+                    const activeOrders = orders.filter(order => order.canceled_at === null);
+                    setActiveOrders(activeOrders);
+                } else {
+                    throw new Error("Неверный тип ответа от сервера. Ожидался JSON.");
+                }
             } catch (error) {
                 console.error('Ошибка при получении активных заказов:', error);
-                setActiveOrders([]); // В случае ошибки сохраняем пустой массив
+                setActiveOrders([]);
             }
         };
 
-        // Первый вызов сразу после монтирования компонента
         fetchActiveOrders();
-
-        // Периодически обновляем активные заказы (каждые 30 секунд)
-        const intervalId = setInterval(fetchActiveOrders, 30000);
-
-        return () => clearInterval(intervalId); // Очищаем интервал при размонтировании компонента
+        const intervalId = setInterval(fetchActiveOrders, 100);
+        return () => clearInterval(intervalId);
     }, []);
+
+
 
     // Подключение к WebSocket
     useEffect(() => {
-        wsClient.current = new WebSocket('ws://localhost:8080');
+        // Убедитесь, что используете wss для HTTPS-соединений
+        wsClient.current = new WebSocket('wss://localhost:8080');
 
         wsClient.current.onopen = () => {
             console.log('Connected to WebSocket server');
@@ -61,14 +66,16 @@ const DriverMapInOnline = () => {
 
             if (event.data instanceof Blob) {
                 event.data.text().then(text => {
+                    console.log('Parsed message from Blob:', text);
                     try {
                         const newOrder = JSON.parse(text);
                         updateOrders(newOrder);
                     } catch (error) {
-                        console.error('Ошибка при обработке сообщения WebSocket:', error);
+                        console.error('Ошибка при обработке сообщения WebSocket (Blob):', error);
                     }
                 });
             } else {
+                console.log('Parsed message:', event.data);
                 try {
                     const newOrder = JSON.parse(event.data);
                     updateOrders(newOrder);
@@ -82,8 +89,8 @@ const DriverMapInOnline = () => {
             console.error('WebSocket error:', error);
         };
 
-        wsClient.current.onclose = () => {
-            console.log('WebSocket connection closed');
+        wsClient.current.onclose = (event) => {
+            console.log('WebSocket connection closed:', event.reason);
         };
 
         return () => {
