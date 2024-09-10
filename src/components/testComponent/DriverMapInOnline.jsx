@@ -28,9 +28,9 @@ const DriverMapInOnline = () => {
     useEffect(() => {
         const fetchActiveOrders = async () => {
             try {
-                const response = await axios.get('https://aacd-176-59-12-8.ngrok-free.app/active-orders');
+                const response = await axios.get('https://18ce-176-59-23-24.ngrok-free.app/active-orders');
                 const orders = Array.isArray(response.data) ? response.data : []; // Проверка, что данные - массив
-
+console.log(orders)
                 // Сохраняем только заказы, которые не отменены
                 setActiveOrders(prevOrders => {
                     const updatedOrders = Array.isArray(prevOrders) ? prevOrders : [];
@@ -47,7 +47,7 @@ const DriverMapInOnline = () => {
         fetchActiveOrders();
 
         // Периодически обновляем активные заказы (каждые 30 секунд)
-        const intervalId = setInterval(fetchActiveOrders, 30000);
+        const intervalId = setInterval(fetchActiveOrders, 1000);
 
         return () => clearInterval(intervalId); // Очищаем интервал при размонтировании компонента
     }, []);
