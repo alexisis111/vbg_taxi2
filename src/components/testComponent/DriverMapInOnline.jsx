@@ -48,9 +48,6 @@ const DriverMapInOnline = () => {
             if (userId) {
                 console.log('Sending register message:', JSON.stringify({ type: 'register', driverId: userId }));
                 wsClient.current.send(JSON.stringify({ type: 'register', driverId: userId }));
-
-                // Запрашиваем статус водителя из базы данных
-                fetchDriverStatus();
             } else {
                 console.error('User ID is not available');
             }
@@ -131,6 +128,33 @@ const DriverMapInOnline = () => {
         return () => clearInterval(intervalId);
     }, []);
 
+    // Запрос статуса водителя при загрузке
+    useEffect(() => {
+        const fetchDriverStatus = async () => {
+            if (!userId) return;
+
+            try {
+                const response = await axios.get(`https://17a8-185-108-19-43.ngrok-free.app/driver-status/${userId}`, {
+                    headers: {
+                        "Content-Type": "application/json",
+                        "ngrok-skip-browser-warning": "true"
+                    }
+                });
+
+                if (response.headers['content-type'].includes('application/json')) {
+                    const { status } = response.data;
+                    setIsOnline(status === 'online');
+                } else {
+                    throw new Error("Неверный тип ответа от сервера. Ожидался JSON.");
+                }
+            } catch (error) {
+                console.error('Ошибка при получении статуса водителя:', error);
+            }
+        };
+
+        fetchDriverStatus();
+    }, [userId]);
+
     // Обновление геолокации
     useEffect(() => {
         const handlePositionUpdate = (position) => {
@@ -155,24 +179,6 @@ const DriverMapInOnline = () => {
 
         startGeolocationWatch();
     }, []);
-
-    // Запрашиваем текущий статус водителя
-    const fetchDriverStatus = async () => {
-        try {
-            const response = await axios.get(`https://17a8-185-108-19-43.ngrok-free.app/driver-status/${userId}`, {
-                headers: {
-                    "Content-Type": "application/json",
-                    "ngrok-skip-browser-warning": "true"
-                }
-            });
-            if (response.headers['content-type'].includes('application/json')) {
-                const status = response.data.status;
-                setIsOnline(status === 'online');
-            }
-        } catch (error) {
-            console.error('Ошибка при получении статуса водителя:', error);
-        }
-    };
 
     // Функция для переключения статуса онлайн/оффлайн
     const toggleOnlineStatus = () => {
