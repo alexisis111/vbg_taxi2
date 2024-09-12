@@ -48,6 +48,9 @@ const DriverMapInOnline = () => {
             if (userId) {
                 console.log('Sending register message:', JSON.stringify({ type: 'register', driverId: userId }));
                 wsClient.current.send(JSON.stringify({ type: 'register', driverId: userId }));
+
+                // Запрашиваем статус водителя из базы данных
+                fetchDriverStatus();
             } else {
                 console.error('User ID is not available');
             }
@@ -60,8 +63,12 @@ const DriverMapInOnline = () => {
                 event.data.text().then(text => {
                     console.log('Parsed message from Blob:', text);
                     try {
-                        const newOrder = JSON.parse(text);
-                        updateOrders(newOrder);
+                        const message = JSON.parse(text);
+                        if (message.type === 'statusUpdate') {
+                            setIsOnline(message.status === 'online');
+                        } else {
+                            updateOrders(message);
+                        }
                     } catch (error) {
                         console.error('Ошибка при обработке сообщения WebSocket (Blob):', error);
                     }
@@ -69,8 +76,12 @@ const DriverMapInOnline = () => {
             } else {
                 console.log('Parsed message:', event.data);
                 try {
-                    const newOrder = JSON.parse(event.data);
-                    updateOrders(newOrder);
+                    const message = JSON.parse(event.data);
+                    if (message.type === 'statusUpdate') {
+                        setIsOnline(message.status === 'online');
+                    } else {
+                        updateOrders(message);
+                    }
                 } catch (error) {
                     console.error('Ошибка при обработке сообщения WebSocket:', error);
                 }
@@ -145,6 +156,24 @@ const DriverMapInOnline = () => {
         startGeolocationWatch();
     }, []);
 
+    // Запрашиваем текущий статус водителя
+    const fetchDriverStatus = async () => {
+        try {
+            const response = await axios.get(`https://17a8-185-108-19-43.ngrok-free.app/driver-status/${userId}`, {
+                headers: {
+                    "Content-Type": "application/json",
+                    "ngrok-skip-browser-warning": "true"
+                }
+            });
+            if (response.headers['content-type'].includes('application/json')) {
+                const status = response.data.status;
+                setIsOnline(status === 'online');
+            }
+        } catch (error) {
+            console.error('Ошибка при получении статуса водителя:', error);
+        }
+    };
+
     // Функция для переключения статуса онлайн/оффлайн
     const toggleOnlineStatus = () => {
         if (!userId) {
@@ -209,7 +238,6 @@ const DriverMapInOnline = () => {
                     <li>Нет активных заказов</li>
                 )}
             </ul>
-
 
             <button
                 onClick={toggleOnlineStatus}
