@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import 'leaflet/dist/leaflet.css';
 import { MapContainer, TileLayer, Marker, useMap } from 'react-leaflet';
 import axios from 'axios';
-
+import { useTelegram } from '../../hooks/useTelegram'; // импорт хука для работы с Telegram
 
 const CenteredMarker = ({ position }) => {
     const map = useMap();
@@ -20,8 +20,8 @@ const DriverMapInOnline = () => {
     const [userLocation, setUserLocation] = useState(null);
     const [locationChange, setLocationChange] = useState('');
     const [activeOrders, setActiveOrders] = useState([]);
-
-
+    const { tg, user, userId, queryId } = useTelegram(); // используем хук для получения tg объекта
+console.log(tg, user, userId, queryId);
     // Запрос активных заказов
     useEffect(() => {
         const fetchActiveOrders = async () => {
