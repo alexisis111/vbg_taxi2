@@ -46,10 +46,7 @@ const DriverMapInOnline = () => {
         wsClient.current.onopen = () => {
             console.log('Connected to WebSocket server');
             if (userId) {
-                console.log('Sending register message:', JSON.stringify({ type: 'register', driverId: userId }));
                 wsClient.current.send(JSON.stringify({ type: 'register', driverId: userId }));
-
-                // Запрашиваем текущий статус водителя
                 wsClient.current.send(JSON.stringify({ type: 'getStatus', driverId: userId }));
             } else {
                 console.error('User ID is not available');
@@ -57,12 +54,8 @@ const DriverMapInOnline = () => {
         };
 
         wsClient.current.onmessage = (event) => {
-            console.log('Message received from WebSocket server:', event.data);
             try {
-                const message = event.data instanceof Blob
-                    ? JSON.parse(event.data.text())
-                    : JSON.parse(event.data);
-
+                const message = JSON.parse(event.data);
                 if (message.type === 'statusUpdate') {
                     setIsOnline(message.status === 'online');
                 } else {
@@ -77,8 +70,8 @@ const DriverMapInOnline = () => {
             console.error('WebSocket error:', error);
         };
 
-        wsClient.current.onclose = (event) => {
-            console.log('WebSocket connection closed:', event.reason);
+        wsClient.current.onclose = () => {
+            console.log('WebSocket connection closed');
         };
 
         return () => {
@@ -87,6 +80,7 @@ const DriverMapInOnline = () => {
             }
         };
     }, [userId]);
+
 
     // Запрос активных заказов
     useEffect(() => {
