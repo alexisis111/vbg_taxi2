@@ -92,7 +92,7 @@ const DriverMapInOnline = () => {
                 )}
             </MapContainer>
 
-            <div className="location-status mt-2 p-2 bg-gray-100 border border-gray-300 rounded">
+            <div className="location-status mt-2 p-2 border border-gray-300 rounded">
                 {locationChange || 'Геолокация не обновлялась'}
             </div>
 
@@ -100,7 +100,7 @@ const DriverMapInOnline = () => {
             <ul className="order-list">
                 {Array.isArray(activeOrders) && activeOrders.length > 0 ? (
                     activeOrders.map(order => (
-                        <li key={order.id} className="order-item p-2 bg-blue-100 border border-blue-300 rounded mb-2">
+                        <li key={order.id} className="order-item p-2 border border-blue-300 rounded mb-2">
                             <strong>Заказ №{order.id}</strong><br />
                             <strong>Адрес отправления:</strong> {order.pickup}<br />
                             <strong>Адрес назначения:</strong> {order.dropoff}<br />
