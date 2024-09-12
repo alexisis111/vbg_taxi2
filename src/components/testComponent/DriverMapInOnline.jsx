@@ -39,48 +39,6 @@ const DriverMapInOnline = () => {
         });
     };
 
-    // Подключение к серверу WebSocket
-    useEffect(() => {
-        wsClient.current = new WebSocket('ws://localhost:8080');
-
-        wsClient.current.onopen = () => {
-            console.log('Connected to WebSocket server');
-            if (userId) {
-                wsClient.current.send(JSON.stringify({ type: 'register', driverId: userId }));
-                wsClient.current.send(JSON.stringify({ type: 'getStatus', driverId: userId }));
-            } else {
-                console.error('User ID is not available');
-            }
-        };
-
-        wsClient.current.onmessage = (event) => {
-            try {
-                const message = JSON.parse(event.data);
-                if (message.type === 'statusUpdate') {
-                    setIsOnline(message.status === 'online');
-                } else {
-                    updateOrders(message);
-                }
-            } catch (error) {
-                console.error('Ошибка при обработке сообщения WebSocket:', error);
-            }
-        };
-
-        wsClient.current.onerror = (error) => {
-            console.error('WebSocket error:', error);
-        };
-
-        wsClient.current.onclose = () => {
-            console.log('WebSocket connection closed');
-        };
-
-        return () => {
-            if (wsClient.current) {
-                wsClient.current.close();
-            }
-        };
-    }, [userId]);
-
 
     // Запрос активных заказов
     useEffect(() => {
