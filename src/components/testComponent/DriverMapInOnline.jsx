@@ -58,33 +58,18 @@ const DriverMapInOnline = () => {
 
         wsClient.current.onmessage = (event) => {
             console.log('Message received from WebSocket server:', event.data);
+            try {
+                const message = event.data instanceof Blob
+                    ? JSON.parse(event.data.text())
+                    : JSON.parse(event.data);
 
-            if (event.data instanceof Blob) {
-                event.data.text().then(text => {
-                    console.log('Parsed message from Blob:', text);
-                    try {
-                        const message = JSON.parse(text);
-                        if (message.type === 'statusUpdate') {
-                            setIsOnline(message.status === 'online');
-                        } else {
-                            updateOrders(message);
-                        }
-                    } catch (error) {
-                        console.error('Ошибка при обработке сообщения WebSocket (Blob):', error);
-                    }
-                });
-            } else {
-                console.log('Parsed message:', event.data);
-                try {
-                    const message = JSON.parse(event.data);
-                    if (message.type === 'statusUpdate') {
-                        setIsOnline(message.status === 'online');
-                    } else {
-                        updateOrders(message);
-                    }
-                } catch (error) {
-                    console.error('Ошибка при обработке сообщения WebSocket:', error);
+                if (message.type === 'statusUpdate') {
+                    setIsOnline(message.status === 'online');
+                } else {
+                    updateOrders(message);
                 }
+            } catch (error) {
+                console.error('Ошибка при обработке сообщения WebSocket:', error);
             }
         };
 
