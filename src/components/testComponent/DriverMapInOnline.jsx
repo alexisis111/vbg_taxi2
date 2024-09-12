@@ -106,7 +106,7 @@ const DriverMapInOnline = () => {
         };
 
         fetchActiveOrders();
-        const intervalId = setInterval(fetchActiveOrders, 60000);
+        const intervalId = setInterval(fetchActiveOrders, 15000);
         return () => clearInterval(intervalId);
     }, []);
 
