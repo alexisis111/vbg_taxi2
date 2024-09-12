@@ -60,11 +60,12 @@ const DriverMapInOnline = () => {
                 event.data.text().then(text => {
                     console.log('Parsed message from Blob:', text);
                     try {
-                        const message = JSON.parse(text);
-                        if (message.type === 'statusUpdate') {
-                            setIsOnline(message.status === 'online');
+                        const parsedData = JSON.parse(text);
+                        if (parsedData.type === 'statusUpdate') {
+                            const { status } = parsedData;
+                            setIsOnline(status === 'online');
                         } else {
-                            updateOrders(message);
+                            updateOrders(parsedData);
                         }
                     } catch (error) {
                         console.error('Ошибка при обработке сообщения WebSocket (Blob):', error);
@@ -73,11 +74,12 @@ const DriverMapInOnline = () => {
             } else {
                 console.log('Parsed message:', event.data);
                 try {
-                    const message = JSON.parse(event.data);
-                    if (message.type === 'statusUpdate') {
-                        setIsOnline(message.status === 'online');
+                    const parsedData = JSON.parse(event.data);
+                    if (parsedData.type === 'statusUpdate') {
+                        const { status } = parsedData;
+                        setIsOnline(status === 'online');
                     } else {
-                        updateOrders(message);
+                        updateOrders(parsedData);
                     }
                 } catch (error) {
                     console.error('Ошибка при обработке сообщения WebSocket:', error);
@@ -128,129 +130,40 @@ const DriverMapInOnline = () => {
         return () => clearInterval(intervalId);
     }, []);
 
-    // Запрос статуса водителя при загрузке
-    useEffect(() => {
-        const fetchDriverStatus = async () => {
-            if (!userId) return;
-
-            try {
-                const response = await axios.get(`https://17a8-185-108-19-43.ngrok-free.app/driver-status/${userId}`, {
-                    headers: {
-                        "Content-Type": "application/json",
-                        "ngrok-skip-browser-warning": "true"
-                    }
-                });
-
-                if (response.headers['content-type'].includes('application/json')) {
-                    const { status } = response.data;
-                    setIsOnline(status === 'online');
-                } else {
-                    throw new Error("Неверный тип ответа от сервера. Ожидался JSON.");
-                }
-            } catch (error) {
-                console.error('Ошибка при получении статуса водителя:', error);
-            }
-        };
-
-        fetchDriverStatus();
-    }, [userId]);
-
     // Обновление геолокации
     useEffect(() => {
         const handlePositionUpdate = (position) => {
             const { latitude, longitude } = position.coords;
             setUserLocation([latitude, longitude]);
-            setLocationChange(`Геолокация изменилась на ${latitude.toFixed(6)}, ${longitude.toFixed(6)}`);
+            setLocationChange(`Обновлено: ${latitude.toFixed(4)}, ${longitude.toFixed(4)}`);
         };
 
         const handleError = (error) => {
-            console.error('Ошибка при получении геолокации:', error);
+            console.error('Ошибка геолокации:', error);
         };
 
-        const startGeolocationWatch = () => {
-            if (navigator.geolocation) {
-                navigator.geolocation.watchPosition(handlePositionUpdate, handleError, {
-                    enableHighAccuracy: true,
-                    maximumAge: 0,
-                    timeout: 5000
-                });
-            }
-        };
+        navigator.geolocation.watchPosition(handlePositionUpdate, handleError);
 
-        startGeolocationWatch();
+        return () => {
+            navigator.geolocation.clearWatch();
+        };
     }, []);
 
-    // Функция для переключения статуса онлайн/оффлайн
-    const toggleOnlineStatus = () => {
-        if (!userId) {
-            console.error('User ID is not available');
-            return;
-        }
-
-        const newStatus = !isOnline ? 'online' : 'offline';
-        setIsOnline(!isOnline);
-
-        console.log('Sending status update:', JSON.stringify({
-            type: 'updateStatus',
-            driverId: userId,
-            status: newStatus
-        }));
-
-        if (wsClient.current) {
-            wsClient.current.send(JSON.stringify({
-                type: 'updateStatus',
-                driverId: userId,
-                status: newStatus
-            }));
-        } else {
-            console.error('WebSocket client is not initialized');
-        }
-    };
-
     return (
-        <div className="map-container">
-            <MapContainer
-                center={[60.7076, 28.7528]}
-                zoom={13}
-                className="w-full h-[450px]"
-            >
+        <div>
+            <div>Location: {locationChange}</div>
+            <MapContainer center={userLocation || [51.505, -0.09]} zoom={13} style={{ height: "400px", width: "100%" }}>
                 <TileLayer
                     url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                    attribution="&copy; OpenStreetMap contributors"
+                    attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
                 />
-                {userLocation && (
-                    <CenteredMarker position={userLocation} />
-                )}
+                <CenteredMarker position={userLocation} />
+                {/* Отобразите активные заказы на карте */}
+                {activeOrders.map(order => (
+                    <Marker key={order.id} position={[order.latitude, order.longitude]} />
+                ))}
             </MapContainer>
-
-            <div className="location-status mt-2 p-2 bg-gray-100 border border-gray-300 rounded">
-                {locationChange || 'Геолокация не обновлялась'}
-            </div>
-
-            <h3 className="font-bold mt-4">Активные заказы</h3>
-            <ul className="order-list">
-                {Array.isArray(activeOrders) && activeOrders.length > 0 ? (
-                    activeOrders.map(order => (
-                        <li key={order.id} className="order-item p-2 bg-blue-100 border border-blue-300 rounded mb-2">
-                            <strong>Заказ №{order.id}</strong><br />
-                            <strong>Адрес отправления:</strong> {order.pickup}<br />
-                            <strong>Адрес назначения:</strong> {order.dropoff}<br />
-                            <strong>Тариф:</strong> {order.tariff}<br />
-                            <strong>Расстояние:</strong> {order.distance} км<br />
-                            <strong>Стоимость:</strong> {order.price} ₽
-                        </li>
-                    ))
-                ) : (
-                    <li>Нет активных заказов</li>
-                )}
-            </ul>
-
-            <button
-                onClick={toggleOnlineStatus}
-                className={`mt-4 p-2 rounded ${isOnline ? 'bg-red-500' : 'bg-green-500'} text-white`}
-            >
-                {isOnline ? 'Перейти в офлайн' : 'Стать онлайн'}
-            </button>
+            <div>Status: {isOnline ? 'Online' : 'Offline'}</div>
         </div>
     );
 };
