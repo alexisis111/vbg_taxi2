@@ -1,7 +1,8 @@
 import { useState, useEffect, useRef } from 'react';
 import 'leaflet/dist/leaflet.css';
 import { MapContainer, TileLayer, Marker, useMap } from 'react-leaflet';
-import axios from "axios";
+import axios from 'axios';
+import { useTelegram } from '../../hooks/useTelegram'; // Предполагаем, что хук в этом файле
 
 const CenteredMarker = ({ position }) => {
     const map = useMap();
@@ -18,46 +19,38 @@ const CenteredMarker = ({ position }) => {
 const DriverMapInOnline = () => {
     const [userLocation, setUserLocation] = useState(null);
     const [locationChange, setLocationChange] = useState('');
-    const [activeOrders, setActiveOrders] = useState([]); // Инициализация как пустой массив
-    const wsClient = useRef(null); // WebSocket клиент
+    const [activeOrders, setActiveOrders] = useState([]);
+    const [isOnline, setIsOnline] = useState(false);
+    const wsClient = useRef(null);
+    const { userId } = useTelegram(); // Получаем userId из хука
 
-    // Получение активных заказов при монтировании компонента
-    useEffect(() => {
-        const fetchActiveOrders = async () => {
-            try {
-                const response = await axios.get('https://17a8-185-108-19-43.ngrok-free.app/active-orders', {
-                    headers: {
-                        "Content-Type": "application/json",
-                        "ngrok-skip-browser-warning": "true"
-                    }
-                });
-                // Проверяем, что сервер возвращает JSON
-                if (response.headers['content-type'].includes('application/json')) {
-                    const orders = response.data;
-                    const activeOrders = orders.filter(order => order.canceled_at === null);
-                    setActiveOrders(activeOrders);
-                } else {
-                    throw new Error("Неверный тип ответа от сервера. Ожидался JSON.");
-                }
-            } catch (error) {
-                console.error('Ошибка при получении активных заказов:', error);
-                setActiveOrders([]);
+    // Функция для обновления активных заказов
+    const updateOrders = (newOrder) => {
+        setActiveOrders(prevOrders => {
+            const updatedOrders = Array.isArray(prevOrders) ? prevOrders : [];
+            const existingOrderIndex = updatedOrders.findIndex(order => order.id === newOrder.id);
+
+            if (existingOrderIndex === -1) {
+                return [...updatedOrders, newOrder];
+            } else {
+                updatedOrders[existingOrderIndex] = newOrder;
+                return updatedOrders;
             }
-        };
+        });
+    };
 
-        fetchActiveOrders();
-        const intervalId = setInterval(fetchActiveOrders, 3000);
-        return () => clearInterval(intervalId);
-    }, []);
-
-
-    // Подключение к WebSocket
+    // Подключение к серверу WebSocket
     useEffect(() => {
-        // Убедитесь, что используете wss для HTTPS-соединений
-        wsClient.current = new WebSocket('wss://localhost:8080');
+        wsClient.current = new WebSocket('ws://localhost:8080');
 
         wsClient.current.onopen = () => {
             console.log('Connected to WebSocket server');
+            if (userId) {
+                console.log('Sending register message:', JSON.stringify({ type: 'register', driverId: userId }));
+                wsClient.current.send(JSON.stringify({ type: 'register', driverId: userId }));
+            } else {
+                console.error('User ID is not available');
+            }
         };
 
         wsClient.current.onmessage = (event) => {
@@ -97,23 +90,37 @@ const DriverMapInOnline = () => {
                 wsClient.current.close();
             }
         };
+    }, [userId]);
+
+    // Запрос активных заказов
+    useEffect(() => {
+        const fetchActiveOrders = async () => {
+            try {
+                const response = await axios.get('https://17a8-185-108-19-43.ngrok-free.app/active-orders', {
+                    headers: {
+                        "Content-Type": "application/json",
+                        "ngrok-skip-browser-warning": "true"
+                    }
+                });
+                if (response.headers['content-type'].includes('application/json')) {
+                    const orders = response.data;
+                    const activeOrders = orders.filter(order => order.canceled_at === null);
+                    setActiveOrders(activeOrders);
+                } else {
+                    throw new Error("Неверный тип ответа от сервера. Ожидался JSON.");
+                }
+            } catch (error) {
+                console.error('Ошибка при получении активных заказов:', error);
+                setActiveOrders([]);
+            }
+        };
+
+        fetchActiveOrders();
+        const intervalId = setInterval(fetchActiveOrders, 3000);
+        return () => clearInterval(intervalId);
     }, []);
 
-    const updateOrders = (newOrder) => {
-        setActiveOrders(prevOrders => {
-            const updatedOrders = Array.isArray(prevOrders) ? prevOrders : [];
-            const existingOrderIndex = updatedOrders.findIndex(order => order.id === newOrder.id);
-
-            if (existingOrderIndex === -1) {
-                return [...updatedOrders, newOrder];
-            } else {
-                updatedOrders[existingOrderIndex] = newOrder;
-                return updatedOrders;
-            }
-        });
-    };
-
-    // Работа с геолокацией
+    // Обновление геолокации
     useEffect(() => {
         const handlePositionUpdate = (position) => {
             const { latitude, longitude } = position.coords;
@@ -137,6 +144,33 @@ const DriverMapInOnline = () => {
 
         startGeolocationWatch();
     }, []);
+
+    // Функция для переключения статуса онлайн/оффлайн
+    const toggleOnlineStatus = () => {
+        if (!userId) {
+            console.error('User ID is not available');
+            return;
+        }
+
+        const newStatus = !isOnline ? 'online' : 'offline';
+        setIsOnline(!isOnline);
+
+        console.log('Sending status update:', JSON.stringify({
+            type: 'updateStatus',
+            driverId: userId,
+            status: newStatus
+        }));
+
+        if (wsClient.current) {
+            wsClient.current.send(JSON.stringify({
+                type: 'updateStatus',
+                driverId: userId,
+                status: newStatus
+            }));
+        } else {
+            console.error('WebSocket client is not initialized');
+        }
+    };
 
     return (
         <div className="map-container">
@@ -175,6 +209,13 @@ const DriverMapInOnline = () => {
                     <li>Нет активных заказов</li>
                 )}
             </ul>
+
+            <button
+                onClick={toggleOnlineStatus}
+                className={`mt-4 p-2 rounded ${isOnline ? 'bg-red-500' : 'bg-green-500'} text-white`}
+            >
+                {isOnline ? 'Перейти в офлайн' : 'Стать онлайн'}
+            </button>
         </div>
     );
 };
