@@ -14,7 +14,7 @@ const Main = () => {
             queryId,
             userId
         }
-        fetch('https://17a8-185-108-19-43.ngrok-free.app/web-data', {
+        fetch('https://0519-185-108-19-43.ngrok-free.app/web-data', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
