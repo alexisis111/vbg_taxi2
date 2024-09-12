@@ -135,32 +135,6 @@ const DriverMapInOnline = () => {
         startGeolocationWatch();
     }, []);
 
-    // Функция для переключения статуса онлайн/оффлайн
-    const toggleOnlineStatus = () => {
-        if (!userId) {
-            console.error('User ID is not available');
-            return;
-        }
-
-        const newStatus = !isOnline ? 'online' : 'offline';
-        setIsOnline(!isOnline);
-
-        console.log('Sending status update:', JSON.stringify({
-            type: 'updateStatus',
-            driverId: userId,
-            status: newStatus
-        }));
-
-        if (wsClient.current) {
-            wsClient.current.send(JSON.stringify({
-                type: 'updateStatus',
-                driverId: userId,
-                status: newStatus
-            }));
-        } else {
-            console.error('WebSocket client is not initialized');
-        }
-    };
 
     return (
         <div className="map-container">
@@ -200,12 +174,6 @@ const DriverMapInOnline = () => {
                 )}
             </ul>
 
-            <button
-                onClick={toggleOnlineStatus}
-                className={`mt-4 p-2 rounded ${isOnline ? 'bg-red-500' : 'bg-green-500'} text-white`}
-            >
-                {isOnline ? 'Перейти в офлайн' : 'Стать онлайн'}
-            </button>
         </div>
     );
 };
