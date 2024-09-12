@@ -41,7 +41,7 @@ const DriverMapInOnline = () => {
 
     // Подключение к серверу WebSocket
     useEffect(() => {
-        wsClient.current = new WebSocket('ws://192.168.1.222:8080');
+        wsClient.current = new WebSocket('wss://192.168.1.222:8080');
 
         wsClient.current.onopen = () => {
             console.log('Connected to WebSocket server');
