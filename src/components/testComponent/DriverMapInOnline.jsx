@@ -1,8 +1,8 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import 'leaflet/dist/leaflet.css';
 import { MapContainer, TileLayer, Marker, useMap } from 'react-leaflet';
 import axios from 'axios';
-import { useTelegram } from '../../hooks/useTelegram';
+
 
 const CenteredMarker = ({ position }) => {
     const map = useMap();
@@ -20,24 +20,6 @@ const DriverMapInOnline = () => {
     const [userLocation, setUserLocation] = useState(null);
     const [locationChange, setLocationChange] = useState('');
     const [activeOrders, setActiveOrders] = useState([]);
-    const [isOnline, setIsOnline] = useState(false);
-    const wsClient = useRef(null);
-    const { userId } = useTelegram();
-
-    // Функция для обновления активных заказов
-    const updateOrders = (newOrder) => {
-        setActiveOrders(prevOrders => {
-            const updatedOrders = Array.isArray(prevOrders) ? prevOrders : [];
-            const existingOrderIndex = updatedOrders.findIndex(order => order.id === newOrder.id);
-
-            if (existingOrderIndex === -1) {
-                return [...updatedOrders, newOrder];
-            } else {
-                updatedOrders[existingOrderIndex] = newOrder;
-                return updatedOrders;
-            }
-        });
-    };
 
 
     // Запрос активных заказов
