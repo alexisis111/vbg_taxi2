@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import 'leaflet/dist/leaflet.css';
 import { MapContainer, TileLayer, Marker, useMap } from 'react-leaflet';
 import axios from 'axios';
-import { useTelegram } from '../../hooks/useTelegram'; // Предполагаем, что хук в этом файле
+import { useTelegram } from '../../hooks/useTelegram';
 
 const CenteredMarker = ({ position }) => {
     const map = useMap();
@@ -22,7 +22,7 @@ const DriverMapInOnline = () => {
     const [activeOrders, setActiveOrders] = useState([]);
     const [isOnline, setIsOnline] = useState(false);
     const wsClient = useRef(null);
-    const { userId } = useTelegram(); // Получаем userId из хука
+    const { userId } = useTelegram();
 
     // Функция для обновления активных заказов
     const updateOrders = (newOrder) => {
@@ -48,6 +48,9 @@ const DriverMapInOnline = () => {
             if (userId) {
                 console.log('Sending register message:', JSON.stringify({ type: 'register', driverId: userId }));
                 wsClient.current.send(JSON.stringify({ type: 'register', driverId: userId }));
+
+                // Запрашиваем текущий статус водителя
+                wsClient.current.send(JSON.stringify({ type: 'getStatus', driverId: userId }));
             } else {
                 console.error('User ID is not available');
             }
@@ -127,33 +130,6 @@ const DriverMapInOnline = () => {
         const intervalId = setInterval(fetchActiveOrders, 3000);
         return () => clearInterval(intervalId);
     }, []);
-
-    // Запрос статуса водителя при загрузке
-    useEffect(() => {
-        const fetchDriverStatus = async () => {
-            if (!userId) return;
-
-            try {
-                const response = await axios.get(`https://17a8-185-108-19-43.ngrok-free.app/driver-status/${userId}`, {
-                    headers: {
-                        "Content-Type": "application/json",
-                        "ngrok-skip-browser-warning": "true"
-                    }
-                });
-
-                if (response.headers['content-type'].includes('application/json')) {
-                    const { status } = response.data;
-                    setIsOnline(status === 'online');
-                } else {
-                    throw new Error("Неверный тип ответа от сервера. Ожидался JSON.");
-                }
-            } catch (error) {
-                console.error('Ошибка при получении статуса водителя:', error);
-            }
-        };
-
-        fetchDriverStatus();
-    }, [userId]);
 
     // Обновление геолокации
     useEffect(() => {
