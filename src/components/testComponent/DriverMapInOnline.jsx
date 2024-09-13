@@ -22,19 +22,7 @@ const DriverMapInOnline = () => {
     const [isOnline, setIsOnline] = useState(null); // Меняем начальное значение на null для контроля загрузки статуса
     const { tg, user, userId, queryId } = useTelegram();
 
-    // Функция для создания таблицы и начальной записи данных
-    const initializeDatabase = async () => {
-        try {
-            await axios.post('https://975e-185-108-19-43.ngrok-free.app/initialize-db', {}, {
-                headers: {
-                    "Content-Type": "application/json",
-                    "ngrok-skip-browser-warning": "true",
-                }
-            });
-        } catch (error) {
-            console.error('Ошибка при инициализации базы данных:', error);
-        }
-    };
+
 
     // Функция отправки данных на сервер
     const updateDriverStatus = async (status) => {
@@ -119,7 +107,6 @@ const DriverMapInOnline = () => {
 
     // Запрос текущего статуса водителя и инициализация базы данных при загрузке компонента
     useEffect(() => {
-        initializeDatabase();
         fetchDriverStatus();
     }, []);
 
