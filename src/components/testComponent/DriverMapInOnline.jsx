@@ -22,25 +22,6 @@ const DriverMapInOnline = () => {
     const [isOnline, setIsOnline] = useState(null); // Меняем начальное значение на null для контроля загрузки статуса
     const { tg, user, userId, queryId } = useTelegram();
 
-    // Функция для запроса текущего статуса водителя из БД
-    const fetchDriverStatus = async () => {
-        try {
-            const response = await axios.get(`https://975e-185-108-19-43.ngrok-free.app/driver-status/${userId}`, {
-                headers: {
-                    "Content-Type": "application/json",
-                    "ngrok-skip-browser-warning": "true",
-                }
-            });
-            const { status, location } = response.data;
-
-            setIsOnline(status === 'online');
-            if (location) {
-                setUserLocation(location.split(',').map(coord => parseFloat(coord)));
-            }
-        } catch (error) {
-            console.error('Ошибка при получении статуса водителя:', error);
-        }
-    };
 
 
     // Функция отправки данных на сервер
@@ -65,6 +46,27 @@ const DriverMapInOnline = () => {
             console.error('Ошибка при обновлении статуса водителя:', error);
         }
     };
+
+    // Функция для запроса текущего статуса водителя из БД
+    const fetchDriverStatus = async () => {
+        try {
+            const response = await axios.get(`https://975e-185-108-19-43.ngrok-free.app/driver-status/${userId}`, {
+                headers: {
+                    "Content-Type": "application/json",
+                    "ngrok-skip-browser-warning": "true",
+                }
+            });
+            const { status, location } = response.data;
+
+            setIsOnline(status === 'online');
+            if (location) {
+                setUserLocation(location.split(',').map(coord => parseFloat(coord)));
+            }
+        } catch (error) {
+            console.error('Ошибка при получении статуса водителя:', error);
+        }
+    };
+
 
 
     // Функция логирования действий водителя
