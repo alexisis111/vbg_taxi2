@@ -121,37 +121,33 @@ const DriverMapInOnline = () => {
     }, [user, userId]);
 
     // Обработчик для изменения статуса водителя (онлайн/оффлайн)
-    const toggleDriverStatus = () => {
+    const toggleDriverStatus = async () => {
         const newStatus = isOnline ? 'offline' : 'online';
 
-        // Отправка нового статуса водителя на сервер с использованием fetch
-        fetch('https://34cb-185-108-19-43.ngrok-free.app/status', {
-            method: 'PUT',
-            headers: {
-                'Content-Type': 'application/json',
-                'ngrok-skip-browser-warning': 'true' // Можно добавить этот заголовок для ngrok
-            },
-            body: JSON.stringify({
-                user_id: userId,
-                status: newStatus
-            })
-        })
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error('Ошибка сети: ' + response.status);
-                }
-                return response.json();
-            })
-            .then(data => {
-                console.log('Статус водителя успешно обновлен:', data.message);
-                setIsOnline(!isOnline);
-            })
-            .catch(error => {
-                console.error('Ошибка при обновлении статуса водителя:', error);
+        try {
+            const response = await fetch('https://34cb-185-108-19-43.ngrok-free.app/status', {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'ngrok-skip-browser-warning': 'true' // Можно добавить этот заголовок для ngrok
+                },
+                body: JSON.stringify({
+                    user_id: userId,
+                    status: newStatus
+                })
             });
+
+            if (!response.ok) {
+                throw new Error('Ошибка сети: ' + response.status);
+            }
+
+            const data = await response.json();
+            console.log('Статус водителя успешно обновлен:', data.message);
+            setIsOnline(!isOnline);
+        } catch (error) {
+            console.error('Ошибка при обновлении статуса водителя:', error);
+        }
     };
-
-
 
     return (
         <div className="map-container">
