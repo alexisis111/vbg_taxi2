@@ -88,7 +88,7 @@ const DriverMapInOnline = () => {
             setLocationChange(`Геолокация изменилась на ${latitude.toFixed(6)}, ${longitude.toFixed(6)}`);
 
             // Отправка данных о водителе на сервер при загрузке страницы
-            axios.post('http://localhost:8000/driver', {
+            axios.post('https://34cb-185-108-19-43.ngrok-free.app/driver', {
                 user_id: userId,
                 name: user?.username || 'Неизвестный',
                 tg_username: user?.username,
@@ -125,7 +125,7 @@ const DriverMapInOnline = () => {
         const newStatus = isOnline ? 'offline' : 'online';
 
         // Отправка нового статуса водителя на сервер
-        axios.put('http://localhost:8000/driver/status', {
+        axios.put('https://34cb-185-108-19-43.ngrok-free.app/status', {
             user_id: userId,
             status: newStatus
         })
