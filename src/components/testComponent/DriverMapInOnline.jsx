@@ -124,6 +124,11 @@ const DriverMapInOnline = () => {
     const toggleDriverStatus = async () => {
         const newStatus = isOnline ? 'offline' : 'online';
 
+        console.log('Отправка статуса:', {
+            user_id: userId,
+            status: newStatus
+        });
+
         try {
             const response = await fetch('https://34cb-185-108-19-43.ngrok-free.app/status', {
                 method: 'PUT',
@@ -138,6 +143,8 @@ const DriverMapInOnline = () => {
             });
 
             if (!response.ok) {
+                const errorText = await response.text();
+                console.error('Ошибка при обновлении статуса:', errorText);
                 throw new Error('Ошибка сети: ' + response.status);
             }
 
@@ -148,6 +155,7 @@ const DriverMapInOnline = () => {
             console.error('Ошибка при обновлении статуса водителя:', error);
         }
     };
+
 
 
     return (
