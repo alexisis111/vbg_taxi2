@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import 'leaflet/dist/leaflet.css';
 import { MapContainer, TileLayer, Marker, useMap } from 'react-leaflet';
 import axios from 'axios';
-import { useTelegram } from '../../hooks/useTelegram';
+import { useTelegram } from '../../hooks/useTelegram'; // импорт хука для работы с Telegram
 
 const CenteredMarker = ({ position }) => {
     const map = useMap();
@@ -19,66 +19,36 @@ const CenteredMarker = ({ position }) => {
 const DriverMapInOnline = () => {
     const [userLocation, setUserLocation] = useState(null);
     const [locationChange, setLocationChange] = useState('');
-    const [isOnline, setIsOnline] = useState(null); // Меняем начальное значение на null для контроля загрузки статуса
-    const { tg, user, userId, queryId } = useTelegram();
-
-
-
-    // Функция отправки данных на сервер
-    const updateDriverStatus = async (status) => {
-        const data = {
-            userId,
-            username: user?.username || 'unknown',
-            status,
-            location: userLocation,
-            timestamp: new Date().toISOString(),
+    const [activeOrders, setActiveOrders] = useState([]);
+    const { tg, user, userId, queryId } = useTelegram(); // используем хук для получения tg объекта
+console.log(tg, user, userId, queryId);
+    // Запрос активных заказов
+    useEffect(() => {
+        const fetchActiveOrders = async () => {
+            try {
+                const response = await axios.get('https://34cb-185-108-19-43.ngrok-free.app/active-orders', {
+                    headers: {
+                        "Content-Type": "application/json",
+                        "ngrok-skip-browser-warning": "true"
+                    }
+                });
+                if (response.headers['content-type'].includes('application/json')) {
+                    const orders = response.data;
+                    const activeOrders = orders.filter(order => order.canceled_at === null);
+                    setActiveOrders(activeOrders);
+                } else {
+                    throw new Error("Неверный тип ответа от сервера. Ожидался JSON.");
+                }
+            } catch (error) {
+                console.error('Ошибка при получении активных заказов:', error);
+                setActiveOrders([]);
+            }
         };
 
-        try {
-            await axios.post('https://975e-185-108-19-43.ngrok-free.app/driver-status', data, {
-                headers: {
-                    "Content-Type": "application/json",
-                    "ngrok-skip-browser-warning": "true",
-                }
-            });
-            logDriverAction(data); // Логируем действие водителя
-        } catch (error) {
-            console.error('Ошибка при обновлении статуса водителя:', error);
-        }
-    };
-
-    // Функция для запроса текущего статуса водителя из БД
-    const fetchDriverStatus = async () => {
-        try {
-            const response = await axios.get(`https://34cb-185-108-19-43.ngrok-free.app/driver-status/${userId}`, {
-                headers: {
-                    "Content-Type": "application/json",
-                    "ngrok-skip-browser-warning": "true",
-                }
-            });
-            const { status, location } = response.data;
-
-            setIsOnline(status === 'online');
-            if (location) {
-                setUserLocation(location.split(',').map(coord => parseFloat(coord)));
-            }
-        } catch (error) {
-            console.error('Ошибка при получении статуса водителя:', error);
-        }
-    };
-
-    // Функция логирования действий водителя
-    const logDriverAction = (data) => {
-        const logMessage = `Driver ${data.username} (${data.userId}) is now ${data.status} at ${data.timestamp}, location: ${data.location}`;
-        console.log(logMessage);
-    };
-
-    // Обработчик нажатия кнопки "Онлайн/Офлайн"
-    const handleToggleStatus = () => {
-        const newStatus = !isOnline ? 'online' : 'offline';
-        setIsOnline(!isOnline);
-        updateDriverStatus(newStatus);
-    };
+        fetchActiveOrders();
+        const intervalId = setInterval(fetchActiveOrders, 15000);
+        return () => clearInterval(intervalId);
+    }, []);
 
     // Обновление геолокации
     useEffect(() => {
@@ -105,15 +75,6 @@ const DriverMapInOnline = () => {
         startGeolocationWatch();
     }, []);
 
-    // Запрос текущего статуса водителя и инициализация базы данных при загрузке компонента
-    useEffect(() => {
-        fetchDriverStatus();
-    }, []);
-
-    // // Проверяем состояние онлайн до рендера кнопки
-    // if (isOnline === null) {
-    //     return <div>Загрузка статуса...</div>;
-    // }
 
     return (
         <div className="map-container">
@@ -135,13 +96,24 @@ const DriverMapInOnline = () => {
                 {locationChange || 'Геолокация не обновлялась'}
             </div>
 
-            {/* Кнопка для переключения статуса онлайн/офлайн */}
-            <button
-                className={`mt-4 p-2 ${isOnline ? 'bg-red-500' : 'bg-green-500'} text-white rounded`}
-                onClick={handleToggleStatus}
-            >
-                {isOnline ? 'Стать офлайн' : 'Стать онлайн'}
-            </button>
+            <h3 className="font-bold mt-4">Активные заказы</h3>
+            <ul className="order-list">
+                {Array.isArray(activeOrders) && activeOrders.length > 0 ? (
+                    activeOrders.map(order => (
+                        <li key={order.id} className="order-item p-2 border border-blue-300 rounded mb-2">
+                            <strong>Заказ №{order.id}</strong><br />
+                            <strong>Адрес отправления:</strong> {order.pickup}<br />
+                            <strong>Адрес назначения:</strong> {order.dropoff}<br />
+                            <strong>Тариф:</strong> {order.tariff}<br />
+                            <strong>Расстояние:</strong> {order.distance} км<br />
+                            <strong>Стоимость:</strong> {order.price} ₽
+                        </li>
+                    ))
+                ) : (
+                    <li>Нет активных заказов</li>
+                )}
+            </ul>
+
         </div>
     );
 };
