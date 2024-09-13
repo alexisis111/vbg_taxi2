@@ -128,6 +128,11 @@ const DriverMapInOnline = () => {
         axios.put('https://34cb-185-108-19-43.ngrok-free.app/status', {
             user_id: userId,
             status: newStatus
+        }, {
+            headers: {
+                'Content-Type': 'application/json',
+                'ngrok-skip-browser-warning': 'true' // Можно добавить этот заголовок для ngrok
+            }
         })
             .then(response => {
                 console.log('Статус водителя успешно обновлен:', response.data.message);
@@ -137,6 +142,7 @@ const DriverMapInOnline = () => {
                 console.error('Ошибка при обновлении статуса водителя:', error);
             });
     };
+
 
     return (
         <div className="map-container">
