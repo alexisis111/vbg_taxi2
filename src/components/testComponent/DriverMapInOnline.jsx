@@ -19,7 +19,7 @@ const CenteredMarker = ({ position }) => {
 const DriverMapInOnline = () => {
     const [userLocation, setUserLocation] = useState(null);
     const [locationChange, setLocationChange] = useState('');
-    const [isOnline, setIsOnline] = useState(false); // Новое состояние для отслеживания онлайн/офлайн
+    const [isOnline, setIsOnline] = useState(null); // Новое состояние для отслеживания онлайн/офлайн
     const { tg, user, userId, queryId } = useTelegram();
 
     // Функция для запроса текущего статуса водителя из БД
