@@ -1,4 +1,4 @@
-import React,{ useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import 'leaflet/dist/leaflet.css';
 import { MapContainer, TileLayer, Marker, useMap } from 'react-leaflet';
 import axios from 'axios';
@@ -44,6 +44,7 @@ const DriverMapInOnline = () => {
     const [activeOrders, setActiveOrders] = useState([]);
     const [loading, setLoading] = useState(true); // Индикатор загрузки
     const [errorMessage, setErrorMessage] = useState(''); // Сообщение об ошибке
+    const [isOnline, setIsOnline] = useState(false); // Статус водителя (онлайн/оффлайн)
     const { tg, user, userId } = useTelegram(); // используем хук для получения tg объекта
 
     // Функция для получения активных заказов
@@ -79,12 +80,26 @@ const DriverMapInOnline = () => {
         return () => clearInterval(intervalId);
     }, [fetchActiveOrders]);
 
-    // Обновление геолокации с дебаунсом (обновление каждые 1000 мс)
+    // Отправка данных водителя на сервер при входе на страницу
     useEffect(() => {
         const handlePositionUpdate = debounce((position) => {
             const { latitude, longitude } = position.coords;
             setUserLocation([latitude, longitude]);
             setLocationChange(`Геолокация изменилась на ${latitude.toFixed(6)}, ${longitude.toFixed(6)}`);
+
+            // Отправка данных о водителе на сервер при загрузке страницы
+            axios.post('http://localhost:8000/driver', {
+                user_id: userId,
+                name: user?.username || 'Неизвестный',
+                tg_username: user?.username,
+                location: `${latitude},${longitude}`
+            })
+                .then(response => {
+                    console.log('Водитель успешно добавлен:', response.data.message);
+                })
+                .catch(error => {
+                    console.error('Ошибка при добавлении водителя:', error);
+                });
         }, 1000);
 
         const handleError = (error) => {
@@ -103,7 +118,25 @@ const DriverMapInOnline = () => {
         };
 
         startGeolocationWatch();
-    }, []);
+    }, [user, userId]);
+
+    // Обработчик для изменения статуса водителя (онлайн/оффлайн)
+    const toggleDriverStatus = () => {
+        const newStatus = isOnline ? 'offline' : 'online';
+
+        // Отправка нового статуса водителя на сервер
+        axios.put('http://localhost:8000/driver/status', {
+            user_id: userId,
+            status: newStatus
+        })
+            .then(response => {
+                console.log('Статус водителя успешно обновлен:', response.data.message);
+                setIsOnline(!isOnline);
+            })
+            .catch(error => {
+                console.error('Ошибка при обновлении статуса водителя:', error);
+            });
+    };
 
     return (
         <div className="map-container">
@@ -127,6 +160,21 @@ const DriverMapInOnline = () => {
             <div className="location-status mt-2 p-2 border border-gray-300 rounded">
                 {locationChange || 'Геолокация не обновлялась'}
             </div>
+
+            {/* Кнопка для изменения статуса водителя */}
+            <button
+                onClick={toggleDriverStatus}
+                style={{
+                    backgroundColor: isOnline ? 'red' : 'green',
+                    color: 'white',
+                    padding: '10px 20px',
+                    border: 'none',
+                    borderRadius: '5px',
+                    marginTop: '20px'
+                }}
+            >
+                {isOnline ? 'Я офлайн' : 'Я на линии'}
+            </button>
 
             {/* Индикатор загрузки */}
             {loading ? (
