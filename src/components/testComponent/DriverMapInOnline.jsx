@@ -22,6 +22,21 @@ const DriverMapInOnline = () => {
     const [isOnline, setIsOnline] = useState(false); // Новое состояние для отслеживания онлайн/офлайн
     const { tg, user, userId, queryId } = useTelegram();
 
+    // Функция для запроса текущего статуса водителя из БД
+    const fetchDriverStatus = async () => {
+        try {
+            const response = await axios.get(`https://975e-185-108-19-43.ngrok-free.app/driver-status/${userId}`);
+            const { status, location } = response.data;
+
+            setIsOnline(status === 'online');
+            if (location) {
+                setUserLocation(location.split(',').map(coord => parseFloat(coord)));
+            }
+        } catch (error) {
+            console.error('Ошибка при получении статуса водителя:', error);
+        }
+    };
+
     // Функция отправки данных на сервер
     const updateDriverStatus = async (status) => {
         const data = {
@@ -77,6 +92,11 @@ const DriverMapInOnline = () => {
         };
 
         startGeolocationWatch();
+    }, []);
+
+    // Запрос текущего статуса водителя при загрузке компонента
+    useEffect(() => {
+        fetchDriverStatus();
     }, []);
 
     return (
