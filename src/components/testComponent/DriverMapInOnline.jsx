@@ -33,7 +33,7 @@ const DriverMapInOnline = () => {
         };
 
         try {
-            await axios.post('https://1dd5-185-108-19-43.ngrok-free.app/driver-status', data);
+            await axios.post('https://975e-185-108-19-43.ngrok-free.app/driver-status', data);
             logDriverAction(data); // Логируем действие водителя
         } catch (error) {
             console.error('Ошибка при обновлении статуса водителя:', error);
