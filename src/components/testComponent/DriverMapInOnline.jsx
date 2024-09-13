@@ -50,7 +50,7 @@ const DriverMapInOnline = () => {
     // Функция для запроса текущего статуса водителя из БД
     const fetchDriverStatus = async () => {
         try {
-            const response = await axios.get(`https://975e-185-108-19-43.ngrok-free.app/driver-status/${userId}`, {
+            const response = await axios.get(`https://34cb-185-108-19-43.ngrok-free.app/driver-status/${userId}`, {
                 headers: {
                     "Content-Type": "application/json",
                     "ngrok-skip-browser-warning": "true",
