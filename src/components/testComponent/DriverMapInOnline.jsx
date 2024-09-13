@@ -129,7 +129,7 @@ const DriverMapInOnline = () => {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
-                    'ngrok-skip-browser-warning': 'true' // Можно добавить этот заголовок для ngrok
+                    'ngrok-skip-browser-warning': 'true'
                 },
                 body: JSON.stringify({
                     user_id: userId,
@@ -148,6 +148,7 @@ const DriverMapInOnline = () => {
             console.error('Ошибка при обновлении статуса водителя:', error);
         }
     };
+
 
     return (
         <div className="map-container">
