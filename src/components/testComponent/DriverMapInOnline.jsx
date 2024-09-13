@@ -21,7 +21,7 @@ const DriverMapInOnline = () => {
     const [locationChange, setLocationChange] = useState('');
     const [activeOrders, setActiveOrders] = useState([]);
     const { tg, user, userId, queryId } = useTelegram(); // используем хук для получения tg объекта
-console.log(tg, user, userId, queryId);
+
     // Запрос активных заказов
     useEffect(() => {
         const fetchActiveOrders = async () => {
@@ -113,7 +113,7 @@ console.log(tg, user, userId, queryId);
                     <li>Нет активных заказов</li>
                 )}
             </ul>
-
+            {userId}{user}
         </div>
     );
 };
