@@ -80,7 +80,7 @@ const DriverMapInOnline = () => {
         return () => clearInterval(intervalId);
     }, [fetchActiveOrders]);
 
-    // Отправка данных водителя на сервер при входе на страницу
+    // Функция для добавления или обновления водителя
     useEffect(() => {
         const handlePositionUpdate = debounce((position) => {
             const { latitude, longitude } = position.coords;
@@ -92,7 +92,8 @@ const DriverMapInOnline = () => {
                 user_id: userId,
                 name: user?.username || 'Неизвестный',
                 tg_username: user?.username,
-                location: `${latitude},${longitude}`
+                location: `${latitude},${longitude}`,
+                status: isOnline ? 'online' : 'offline' // Добавляем статус
             })
                 .then(response => {
                     console.log('Водитель успешно добавлен:', response.data.message);
@@ -118,7 +119,8 @@ const DriverMapInOnline = () => {
         };
 
         startGeolocationWatch();
-    }, [user, userId]);
+    }, [user, userId, isOnline]);
+
 
     // Обработчик для изменения статуса водителя (онлайн/оффлайн)
     const toggleDriverStatus = async () => {
