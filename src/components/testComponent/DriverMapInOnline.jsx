@@ -25,14 +25,15 @@ const DriverMapInOnline = () => {
     // Функция для запроса текущего статуса водителя из БД
     const fetchDriverStatus = async () => {
         try {
-            const response = await axios.get(`https://975e-185-108-19-43.ngrok-free.app/driver-status/${userId}`);
-            console.log('Ответ сервера:', response.data); // Логируем ответ от сервера
+            const response = await axios.get(`https://975e-185-108-19-43.ngrok-free.app/driver-status/${userId}`, {
+                headers: {
+                    "Content-Type": "application/json",
+                    "ngrok-skip-browser-warning": "true",
+                }
+            });
             const { status, location } = response.data;
 
-            if (status) {
-                setIsOnline(status === 'online'); // Обновляем состояние онлайн
-            }
-
+            setIsOnline(status === 'online');
             if (location) {
                 setUserLocation(location.split(',').map(coord => parseFloat(coord)));
             }
@@ -40,6 +41,7 @@ const DriverMapInOnline = () => {
             console.error('Ошибка при получении статуса водителя:', error);
         }
     };
+
 
     // Функция отправки данных на сервер
     const updateDriverStatus = async (status) => {
@@ -52,12 +54,18 @@ const DriverMapInOnline = () => {
         };
 
         try {
-            await axios.post('https://975e-185-108-19-43.ngrok-free.app/driver-status', data);
+            await axios.post('https://975e-185-108-19-43.ngrok-free.app/driver-status', data, {
+                headers: {
+                    "Content-Type": "application/json",
+                    "ngrok-skip-browser-warning": "true",
+                }
+            });
             logDriverAction(data); // Логируем действие водителя
         } catch (error) {
             console.error('Ошибка при обновлении статуса водителя:', error);
         }
     };
+
 
     // Функция логирования действий водителя
     const logDriverAction = (data) => {
