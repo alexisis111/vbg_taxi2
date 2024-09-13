@@ -124,24 +124,33 @@ const DriverMapInOnline = () => {
     const toggleDriverStatus = () => {
         const newStatus = isOnline ? 'offline' : 'online';
 
-        // Отправка нового статуса водителя на сервер
-        axios.put('https://34cb-185-108-19-43.ngrok-free.app/status', {
-            user_id: userId,
-            status: newStatus
-        }, {
+        // Отправка нового статуса водителя на сервер с использованием fetch
+        fetch('https://34cb-185-108-19-43.ngrok-free.app/status', {
+            method: 'PUT',
             headers: {
                 'Content-Type': 'application/json',
                 'ngrok-skip-browser-warning': 'true' // Можно добавить этот заголовок для ngrok
-            }
+            },
+            body: JSON.stringify({
+                user_id: userId,
+                status: newStatus
+            })
         })
             .then(response => {
-                console.log('Статус водителя успешно обновлен:', response.data.message);
+                if (!response.ok) {
+                    throw new Error('Ошибка сети: ' + response.status);
+                }
+                return response.json();
+            })
+            .then(data => {
+                console.log('Статус водителя успешно обновлен:', data.message);
                 setIsOnline(!isOnline);
             })
             .catch(error => {
                 console.error('Ошибка при обновлении статуса водителя:', error);
             });
     };
+
 
 
     return (
