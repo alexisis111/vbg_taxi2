@@ -123,10 +123,10 @@ const DriverMapInOnline = () => {
         fetchDriverStatus();
     }, []);
 
-    // Проверяем состояние онлайн до рендера кнопки
-    if (isOnline === null) {
-        return <div>Загрузка статуса...</div>;
-    }
+    // // Проверяем состояние онлайн до рендера кнопки
+    // if (isOnline === null) {
+    //     return <div>Загрузка статуса...</div>;
+    // }
 
     return (
         <div className="map-container">
