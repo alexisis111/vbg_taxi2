@@ -46,7 +46,7 @@ const DriverMapInOnline = () => {
     const [errorMessage, setErrorMessage] = useState('');
     const [isOnline, setIsOnline] = useState(false);
     const { tg, user, userId } = useTelegram(); // используем хук для получения tg объекта
-console.log(tg, user, userId)
+
 
     // Функция для получения активных заказов
     const fetchActiveOrders = useCallback(async () => {
@@ -100,8 +100,7 @@ console.log(tg, user, userId)
             axios.post('https://dc94-185-108-19-43.ngrok-free.app/driver',
                 {
                     user_id: userId,
-                    name: user?.username || 'Неизвестный',
-                    tg_username: user?.username,
+                    name: user?.user || 'Неизвестный',
                     location: `${latitude},${longitude}`,
                     status: isOnline ? 'online' : 'offline'
                 },
@@ -132,7 +131,7 @@ console.log(tg, user, userId)
             );
             return () => navigator.geolocation.clearWatch(watchId);
         }
-    }, [userId, user?.username, isOnline]);
+    }, [userId, user?.user, isOnline]);
 
     // Обработчик для изменения статуса водителя
     const toggleDriverStatus = async () => {
