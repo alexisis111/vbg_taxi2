@@ -47,6 +47,7 @@ const DriverMapInOnline = () => {
     const [isOnline, setIsOnline] = useState(false);
     const { tg, user, userId } = useTelegram();
 
+    console.log(tg)
     // Функция для получения активных заказов
     const fetchActiveOrders = useCallback(async () => {
         setLoading(true);
