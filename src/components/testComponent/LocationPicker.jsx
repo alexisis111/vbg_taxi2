@@ -355,7 +355,7 @@ const LocationPicker = () => {
 
         console.log("Данные для отправки:", orderData); // Логирование данных
 
-        fetch('https://34cb-185-108-19-43.ngrok-free.app/order-data', {
+        fetch('https://2627-185-108-19-43.ngrok-free.app/order-data', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
