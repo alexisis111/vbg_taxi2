@@ -2,7 +2,6 @@ import React, { useState, useEffect, useCallback } from 'react';
 import 'leaflet/dist/leaflet.css';
 import { MapContainer, TileLayer, Marker, useMap } from 'react-leaflet';
 import axios from 'axios';
-import throttle from 'lodash.throttle';
 import { useTelegram } from '../../hooks/useTelegram';
 
 // Компонент CenteredMarker
@@ -47,46 +46,53 @@ const DriverMapInOnline = () => {
     const [isOnline, setIsOnline] = useState(false);
     const { tg, user, userId } = useTelegram(); // используем хук для получения tg объекта
 
-    // Функция для получения активных заказов
-    const fetchActiveOrders = useCallback(async () => {
-        if (!isOnline) return; // Не выполняем запрос, если водитель не в сети
+    const [socket, setSocket] = useState(null);
 
-        setLoading(true);
-        try {
-            const response = await axios.get('https://dc94-185-108-19-43.ngrok-free.app/active-orders', {
-                headers: {
-                    "Content-Type": "application/json",
-                    "ngrok-skip-browser-warning": "true"
-                }
-            });
+    // Функция для получения активных заказов через WebSocket
+    const setupWebSocket = useCallback(() => {
+        const ws = new WebSocket('ws://localhost:3001');
 
-            if (response.status === 200 && Array.isArray(response.data)) {
-                const orders = response.data.filter(order => order.canceled_at === null);
-                setActiveOrders(orders);
-            } else {
-                throw new Error('Некорректный ответ от сервера.');
+        ws.onopen = () => {
+            console.log('WebSocket соединение установлено');
+            ws.send(JSON.stringify({ action: 'subscribe', user_id: userId }));
+        };
+
+        ws.onmessage = (event) => {
+            const data = JSON.parse(event.data);
+
+            if (data.type === 'orders') {
+                setActiveOrders(data.orders); // Обновляем список активных заказов
+                setLoading(false); // Заказы загружены
+            } else if (data.type === 'location') {
+                setUserLocation(data.location); // Обновляем геолокацию
             }
-        } catch (error) {
-            setErrorMessage('Не удалось загрузить активные заказы. Попробуйте позже.');
-            console.error('Ошибка при получении активных заказов:', error);
-            setActiveOrders([]);
-        } finally {
-            setLoading(false);
-        }
-    }, [isOnline]);
+        };
 
-    // Обновление заказов каждые 15 секунд, только если водитель онлайн
+        ws.onerror = (error) => {
+            console.error('WebSocket ошибка:', error);
+            setErrorMessage('Ошибка соединения с сервером WebSocket.');
+        };
+
+        ws.onclose = () => {
+            console.log('WebSocket соединение закрыто');
+        };
+
+        setSocket(ws);
+
+        return ws;
+    }, [userId]);
+
+    // Открытие WebSocket-соединения при монтировании компонента
     useEffect(() => {
         if (isOnline) {
-            fetchActiveOrders();
-            const intervalId = setInterval(fetchActiveOrders, 15000);
-            return () => clearInterval(intervalId); // Очистка интервала при изменении статуса
+            const ws = setupWebSocket();
+            return () => ws.close(); // Закрыть WebSocket при размонтировании компонента
         }
-    }, [isOnline, fetchActiveOrders]);
+    }, [isOnline, setupWebSocket]);
 
     // Обновление геолокации
     useEffect(() => {
-        const throttledPositionUpdate = throttle((position) => {
+        const throttledPositionUpdate = (position) => {
             const { latitude, longitude } = position.coords;
             setUserLocation([latitude, longitude]);
             setLocationChange(`Геолокация изменилась на ${latitude.toFixed(6)}, ${longitude.toFixed(6)}`);
@@ -98,23 +104,15 @@ const DriverMapInOnline = () => {
                 status: isOnline ? 'online' : 'offline'
             });
 
-            axios.post('https://dc94-185-108-19-43.ngrok-free.app/driver',
-                {
+            if (socket) {
+                socket.send(JSON.stringify({
+                    action: 'update_location',
                     user_id: userId,
-                    name: user || 'Неизвестный',
                     location: `${latitude},${longitude}`,
                     status: isOnline ? 'online' : 'offline'
-                },
-                {
-                    headers: {
-                        "Content-Type": "application/json",
-                        "ngrok-skip-browser-warning": "true"
-                    }
-                }).catch(error => {
-                console.error('Ошибка при обновлении геолокации:', error);
-            });
-
-        }, 5000);
+                }));
+            }
+        };
 
         const handleError = (error) => {
             setErrorMessage('Не удалось получить вашу геолокацию. Проверьте настройки.');
@@ -129,7 +127,7 @@ const DriverMapInOnline = () => {
             );
             return () => navigator.geolocation.clearWatch(watchId);
         }
-    }, [userId, user?.user, isOnline]);
+    }, [userId, user?.user, isOnline, socket]);
 
     // Обработчик для изменения статуса водителя
     const toggleDriverStatus = async () => {
@@ -206,6 +204,5 @@ const DriverMapInOnline = () => {
         </div>
     );
 };
-
 
 export default DriverMapInOnline;
