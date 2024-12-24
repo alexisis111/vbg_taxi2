@@ -124,7 +124,7 @@ const DriverMapInOnline = () => {
             });
 
             if (response.status === 200) {
-                setIsOnline(isOnline);
+                setIsOnline(!isOnline);
             } else {
                 throw new Error('Ошибка обновления статуса.');
             }
