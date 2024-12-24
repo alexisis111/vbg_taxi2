@@ -50,7 +50,7 @@ const DriverMapInOnline = () => {
 
     // Функция для получения активных заказов через WebSocket
     const setupWebSocket = useCallback(() => {
-        const ws = new WebSocket('wss://your-websocket-server-url');
+        const ws = new WebSocket('wss://your-websocket-server-url'); // Укажите ваш WebSocket сервер
 
         ws.onopen = () => {
             console.log('WebSocket соединение установлено');
@@ -62,6 +62,7 @@ const DriverMapInOnline = () => {
 
             if (data.type === 'orders') {
                 setActiveOrders(data.orders); // Обновляем список активных заказов
+                setLoading(false); // Заказы загружены
             } else if (data.type === 'location') {
                 setUserLocation(data.location); // Обновляем геолокацию
             }
