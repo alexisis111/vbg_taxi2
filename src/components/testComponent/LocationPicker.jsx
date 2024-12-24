@@ -267,6 +267,32 @@ const LocationPicker = () => {
         fetchAddress(coords, setAddress);
     };
 
+    const sendRouteToServer = async (routeCoords) => {
+        try {
+            const response = await fetch('https://dc94-185-108-19-43.ngrok-free.app/route-data', {
+                method: 'POST',
+                headers: {
+                    "Content-Type": "application/json",
+                    "ngrok-skip-browser-warning": "true"
+                },
+                body: JSON.stringify({ routeCoords }),
+            });
+            const result = await response.json();
+            console.log('Маршрут успешно отправлен:', result);
+        } catch (error) {
+            console.error('Ошибка при отправке маршрута:', error);
+        }
+    };
+
+    // В useEffect после получения маршрута
+    useEffect(() => {
+        if (pickupCoords && dropoffCoords) {
+            getRoute([pickupCoords, dropoffCoords]);
+            logCoordinates(pickupCoords, dropoffCoords); // Выводим координаты в консоль
+        }
+    }, [pickupCoords, dropoffCoords]);
+
+
     const getRoute = async (coordinates) => {
         try {
             const response = await axios.post(
@@ -288,6 +314,7 @@ const LocationPicker = () => {
                 const decodedCoords = polyline.decode(encodedPolyline);
 
                 setRouteCoords(decodedCoords);
+                sendRouteToServer(decodedCoords); // Отправляем маршрут на сервер
 
                 const distanceInMeters = route.summary.distance;
                 const distanceInKm = (distanceInMeters / 1000).toFixed(2);
@@ -299,6 +326,8 @@ const LocationPicker = () => {
             console.error('Ошибка при получении маршрута:', error);
         }
     };
+
+
 
     const LocationMarker = () => {
         useMapEvents({
@@ -380,6 +409,7 @@ const LocationPicker = () => {
             tg.offEvent('mainButtonClicked', handleSendData);
         };
     }, [handleSendData, tg]);
+
 
 
     return (
