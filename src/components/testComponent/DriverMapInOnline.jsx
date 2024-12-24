@@ -45,9 +45,9 @@ const DriverMapInOnline = () => {
     const [loading, setLoading] = useState(true);
     const [errorMessage, setErrorMessage] = useState('');
     const [isOnline, setIsOnline] = useState(false);
-    const { tg, user, userId } = useTelegram();
+    const {  user, userId } = useTelegram();
 
-    console.log(tg)
+
     // Функция для получения активных заказов
     const fetchActiveOrders = useCallback(async () => {
         setLoading(true);
@@ -97,15 +97,24 @@ const DriverMapInOnline = () => {
             });
 
 
-            axios.post('https://dc94-185-108-19-43.ngrok-free.app/driver', {
-                user_id: userId,
-                name: user?.username || 'Неизвестный',
-                tg_username: user?.username,
-                location: `${latitude},${longitude}`,
-                status: isOnline ? 'online' : 'offline'
-            }).catch(error => {
+            axios.post('https://dc94-185-108-19-43.ngrok-free.app/driver',
+                {
+                    user_id: userId,
+                    name: user?.username || 'Неизвестный',
+                    tg_username: user?.username,
+                    location: `${latitude},${longitude}`,
+                    status: isOnline ? 'online' : 'offline'
+                },
+                {
+                    headers: {
+                        "Content-Type": "application/json",
+                        "ngrok-skip-browser-warning": "true"
+                    }
+                }
+            ).catch(error => {
                 console.error('Ошибка при обновлении геолокации:', error);
             });
+
         }, 5000);
 
 
