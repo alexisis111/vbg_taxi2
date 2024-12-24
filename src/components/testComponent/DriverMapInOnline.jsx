@@ -82,6 +82,8 @@ const DriverMapInOnline = () => {
 
     // Обновление геолокации
     useEffect(() => {
+        if (!userId || !user?.username) return; // Ждем, пока данные загрузятся
+
         const throttledPositionUpdate = throttle((position) => {
             const { latitude, longitude } = position.coords;
             setUserLocation([latitude, longitude]);
@@ -112,6 +114,7 @@ const DriverMapInOnline = () => {
             return () => navigator.geolocation.clearWatch(watchId);
         }
     }, [userId, user?.username, isOnline]);
+
 
     // Обработчик для изменения статуса водителя
     const toggleDriverStatus = async () => {
