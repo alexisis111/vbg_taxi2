@@ -143,6 +143,9 @@ const DriverMapInOnline = () => {
 
             if (response.status === 200) {
                 setIsOnline(!isOnline);
+                if (newStatus === 'offline') {
+                    setActiveOrders([]); // Сбрасываем заказы, если водитель уходит в офлайн
+                }
             } else {
                 throw new Error('Ошибка обновления статуса.');
             }
@@ -182,13 +185,19 @@ const DriverMapInOnline = () => {
                 {isOnline ? 'Уйти с линии' : 'Выйти на линию'}
             </button>
 
-            {loading ? (
-                <p className="loading-message mt-4 text-blue-500">Загрузка активных заказов...</p>
-            ) : (
+            {isOnline ? (
                 <>
-                    <h3 className="font-bold mt-4">Активные заказы</h3>
-                    <OrderList orders={activeOrders} />
+                    {loading ? (
+                        <p className="loading-message mt-4 text-blue-500">Загрузка активных заказов...</p>
+                    ) : (
+                        <>
+                            <h3 className="font-bold mt-4">Активные заказы</h3>
+                            <OrderList orders={activeOrders} />
+                        </>
+                    )}
                 </>
+            ) : (
+                <p className="mt-4 text-gray-500">Чтобы получать заказы, выйдите на линию</p>
             )}
 
             <div className="telegram-info mt-4">
