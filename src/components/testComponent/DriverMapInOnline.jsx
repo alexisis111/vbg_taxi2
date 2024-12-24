@@ -90,7 +90,7 @@ const DriverMapInOnline = () => {
             console.log('Отправка данных на сервер:', {
                 user_id: userId,
                 name: user?.username || 'Неизвестный',
-                tg_username: user?.username,
+                tg_username: user?.username || '',
                 location: `${latitude},${longitude}`,
                 status: isOnline ? 'online' : 'offline'
             });
