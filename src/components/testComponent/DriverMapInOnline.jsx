@@ -50,7 +50,7 @@ const DriverMapInOnline = () => {
 
     // Функция для получения активных заказов через WebSocket
     const setupWebSocket = useCallback(() => {
-        const ws = new WebSocket('wss://your-websocket-server-url'); // Укажите ваш WebSocket сервер
+        const ws = new WebSocket('ws://localhost:3001');
 
         ws.onopen = () => {
             console.log('WebSocket соединение установлено');
