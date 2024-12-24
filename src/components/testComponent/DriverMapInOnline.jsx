@@ -2,10 +2,10 @@ import React, { useState, useEffect, useCallback } from 'react';
 import 'leaflet/dist/leaflet.css';
 import { MapContainer, TileLayer, Marker, useMap } from 'react-leaflet';
 import axios from 'axios';
-import debounce from 'lodash.debounce';
-import { useTelegram } from '../../hooks/useTelegram'; // импорт хука для работы с Telegram
+import throttle from 'lodash.throttle';
+import { useTelegram } from '../../hooks/useTelegram';
 
-// Компонент CenteredMarker, мемоизирован для предотвращения лишних рендеров
+// Компонент CenteredMarker
 const CenteredMarker = React.memo(({ position }) => {
     const map = useMap();
 
@@ -42,23 +42,23 @@ const DriverMapInOnline = () => {
     const [userLocation, setUserLocation] = useState(null);
     const [locationChange, setLocationChange] = useState('');
     const [activeOrders, setActiveOrders] = useState([]);
-    const [loading, setLoading] = useState(true); // Индикатор загрузки
-    const [errorMessage, setErrorMessage] = useState(''); // Сообщение об ошибке
-    const [isOnline, setIsOnline] = useState(false); // Статус водителя (онлайн/оффлайн)
-    const { tg, user, userId } = useTelegram(); // используем хук для получения tg объекта
+    const [loading, setLoading] = useState(true);
+    const [errorMessage, setErrorMessage] = useState('');
+    const [isOnline, setIsOnline] = useState(false);
+    const { tg, user, userId } = useTelegram();
 
     // Функция для получения активных заказов
     const fetchActiveOrders = useCallback(async () => {
         setLoading(true);
         try {
-            const response = await axios.get('https://dc94-185-108-19-43.ngrok-free.app/active-orders', {
+            const response = await axios.get('https://34cb-185-108-19-43.ngrok-free.app/active-orders', {
                 headers: {
                     "Content-Type": "application/json",
                     "ngrok-skip-browser-warning": "true"
                 }
             });
 
-            if (response.status === 200 && response.data) {
+            if (response.status === 200 && Array.isArray(response.data)) {
                 const orders = response.data.filter(order => order.canceled_at === null);
                 setActiveOrders(orders);
             } else {
@@ -73,104 +73,72 @@ const DriverMapInOnline = () => {
         }
     }, []);
 
-    // Вызов функции для получения заказов каждые 15 секунд
+    // Обновление заказов каждые 15 секунд
     useEffect(() => {
         fetchActiveOrders();
         const intervalId = setInterval(fetchActiveOrders, 15000);
         return () => clearInterval(intervalId);
     }, [fetchActiveOrders]);
 
-    // Функция для добавления или обновления водителя
+    // Обновление геолокации
     useEffect(() => {
-        const handlePositionUpdate = debounce((position) => {
+        const throttledPositionUpdate = throttle((position) => {
             const { latitude, longitude } = position.coords;
             setUserLocation([latitude, longitude]);
             setLocationChange(`Геолокация изменилась на ${latitude.toFixed(6)}, ${longitude.toFixed(6)}`);
 
-            // Отправка данных о водителе на сервер при загрузке страницы
-            axios.post('https://dc94-185-108-19-43.ngrok-free.app/driver', {
+            axios.post('https://34cb-185-108-19-43.ngrok-free.app/driver', {
                 user_id: userId,
                 name: user?.username || 'Неизвестный',
                 tg_username: user?.username,
                 location: `${latitude},${longitude}`,
-                status: isOnline ? 'online' : 'offline' // Добавляем статус
-            })
-                .then(response => {
-                    console.log('Водитель успешно добавлен:', response.data.message);
-                })
-                .catch(error => {
-                    console.error('Ошибка при добавлении водителя:', error);
-                });
-        }, 1000);
+                status: isOnline ? 'online' : 'offline'
+            }).catch(error => {
+                console.error('Ошибка при обновлении геолокации:', error);
+            });
+        }, 5000);
 
         const handleError = (error) => {
-            setErrorMessage('Не удалось получить вашу геолокацию. Пожалуйста, проверьте настройки.');
+            setErrorMessage('Не удалось получить вашу геолокацию. Проверьте настройки.');
             console.error('Ошибка при получении геолокации:', error);
         };
 
-        const startGeolocationWatch = () => {
-            if (navigator.geolocation) {
-                navigator.geolocation.watchPosition(handlePositionUpdate, handleError, {
-                    enableHighAccuracy: true,
-                    maximumAge: 0,
-                    timeout: 5000
-                });
-            }
-        };
+        if (navigator.geolocation) {
+            const watchId = navigator.geolocation.watchPosition(
+                throttledPositionUpdate,
+                handleError,
+                { enableHighAccuracy: true, maximumAge: 0, timeout: 5000 }
+            );
+            return () => navigator.geolocation.clearWatch(watchId);
+        }
+    }, [userId, user?.username, isOnline]);
 
-        startGeolocationWatch();
-    }, [user, userId, isOnline]);
-
-
-    // Обработчик для изменения статуса водителя (онлайн/оффлайн)
+    // Обработчик для изменения статуса водителя
     const toggleDriverStatus = async () => {
         const newStatus = isOnline ? 'offline' : 'online';
 
-        console.log('Отправка статуса:', {
-            user_id: userId,
-            status: newStatus
-        });
-
         try {
-            const response = await fetch('https://dc94-185-108-19-43.ngrok-free.app/status', {
-                method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'ngrok-skip-browser-warning': 'true'
-                },
-                body: JSON.stringify({
-                    user_id: userId,
-                    status: newStatus
-                })
+            const response = await axios.put('https://34cb-185-108-19-43.ngrok-free.app/status', {
+                user_id: userId,
+                status: newStatus
             });
 
-            if (!response.ok) {
-                const errorText = await response.text();
-                console.error('Ошибка при обновлении статуса:', errorText);
-                throw new Error('Ошибка сети: ' + response.status);
+            if (response.status === 200) {
+                setIsOnline(!isOnline);
+            } else {
+                throw new Error('Ошибка обновления статуса.');
             }
-
-            const data = await response.json();
-            console.log('Статус водителя успешно обновлен:', data.message);
-            setIsOnline(!isOnline);
         } catch (error) {
+            setErrorMessage('Не удалось обновить статус. Попробуйте позже.');
             console.error('Ошибка при обновлении статуса водителя:', error);
         }
     };
 
-
-
     return (
         <div className="map-container">
-            {/* Сообщение об ошибке */}
             {errorMessage && <div className="error-message text-red-500 p-2">{errorMessage}</div>}
 
-            {/* Карта */}
-            <MapContainer
-                center={[60.7076, 28.7528]}
-                zoom={13}
-                className="w-full h-[450px]"
-            >
+            <MapContainer center={[60.7076, 28.7528]} zoom={13} className="w-full h-[450px]">
                 <TileLayer
                     url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
                     attribution="&copy; OpenStreetMap contributors"
@@ -178,12 +146,10 @@ const DriverMapInOnline = () => {
                 {userLocation && <CenteredMarker position={userLocation} />}
             </MapContainer>
 
-            {/* Статус геолокации */}
             <div className="location-status mt-2 p-2 border border-gray-300 rounded">
                 {locationChange || 'Геолокация не обновлялась'}
             </div>
 
-            {/* Кнопка для изменения статуса водителя */}
             <button
                 onClick={toggleDriverStatus}
                 style={{
@@ -198,7 +164,6 @@ const DriverMapInOnline = () => {
                 {isOnline ? 'Я офлайн' : 'Я на линии'}
             </button>
 
-            {/* Индикатор загрузки */}
             {loading ? (
                 <p className="loading-message mt-4 text-blue-500">Загрузка активных заказов...</p>
             ) : (
@@ -208,7 +173,6 @@ const DriverMapInOnline = () => {
                 </>
             )}
 
-            {/* Отображение ID пользователя Telegram */}
             <div className="telegram-info mt-4">
                 <strong>Ваш ID в Telegram: {userId}</strong>
             </div>
