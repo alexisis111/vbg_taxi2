@@ -181,7 +181,7 @@ const DriverMapInOnline = () => {
                     marginTop: '20px'
                 }}
             >
-                {isOnline ? 'Я офлайн' : 'Я на линии'}
+                {isOnline ? 'Уйти с линии' : 'Выйти на линию'}
             </button>
 
             {loading ? (
