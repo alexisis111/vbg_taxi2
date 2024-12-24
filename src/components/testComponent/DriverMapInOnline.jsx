@@ -87,6 +87,15 @@ const DriverMapInOnline = () => {
             setUserLocation([latitude, longitude]);
             setLocationChange(`Геолокация изменилась на ${latitude.toFixed(6)}, ${longitude.toFixed(6)}`);
 
+            console.log('Отправка данных на сервер:', {
+                user_id: userId,
+                name: user?.username || 'Неизвестный',
+                tg_username: user?.username,
+                location: `${latitude},${longitude}`,
+                status: isOnline ? 'online' : 'offline'
+            });
+
+
             axios.post('https://dc94-185-108-19-43.ngrok-free.app/driver', {
                 user_id: userId,
                 name: user?.username || 'Неизвестный',
@@ -97,6 +106,8 @@ const DriverMapInOnline = () => {
                 console.error('Ошибка при обновлении геолокации:', error);
             });
         }, 5000);
+
+
 
         const handleError = (error) => {
             setErrorMessage('Не удалось получить вашу геолокацию. Проверьте настройки.');
