@@ -47,9 +47,10 @@ const DriverMapInOnline = () => {
     const [isOnline, setIsOnline] = useState(false);
     const { tg, user, userId } = useTelegram(); // используем хук для получения tg объекта
 
-
     // Функция для получения активных заказов
     const fetchActiveOrders = useCallback(async () => {
+        if (!isOnline) return; // Не выполняем запрос, если водитель не в сети
+
         setLoading(true);
         try {
             const response = await axios.get('https://dc94-185-108-19-43.ngrok-free.app/active-orders', {
@@ -72,14 +73,16 @@ const DriverMapInOnline = () => {
         } finally {
             setLoading(false);
         }
-    }, []);
+    }, [isOnline]);
 
-    // Обновление заказов каждые 15 секунд
+    // Обновление заказов каждые 15 секунд, только если водитель онлайн
     useEffect(() => {
-        fetchActiveOrders();
-        const intervalId = setInterval(fetchActiveOrders, 15000);
-        return () => clearInterval(intervalId);
-    }, [fetchActiveOrders]);
+        if (isOnline) {
+            fetchActiveOrders();
+            const intervalId = setInterval(fetchActiveOrders, 15000);
+            return () => clearInterval(intervalId); // Очистка интервала при изменении статуса
+        }
+    }, [isOnline, fetchActiveOrders]);
 
     // Обновление геолокации
     useEffect(() => {
@@ -95,7 +98,6 @@ const DriverMapInOnline = () => {
                 status: isOnline ? 'online' : 'offline'
             });
 
-
             axios.post('https://dc94-185-108-19-43.ngrok-free.app/driver',
                 {
                     user_id: userId,
@@ -108,14 +110,11 @@ const DriverMapInOnline = () => {
                         "Content-Type": "application/json",
                         "ngrok-skip-browser-warning": "true"
                     }
-                }
-            ).catch(error => {
+                }).catch(error => {
                 console.error('Ошибка при обновлении геолокации:', error);
             });
 
         }, 5000);
-
-
 
         const handleError = (error) => {
             setErrorMessage('Не удалось получить вашу геолокацию. Проверьте настройки.');
@@ -182,7 +181,6 @@ const DriverMapInOnline = () => {
             >
                 {isOnline ? 'Уйти с линии' : 'Выйти на линию'}
             </button>
-
 
             {loading ? (
                 <p className="loading-message mt-4 text-blue-500">Загрузка активных заказов...</p>
