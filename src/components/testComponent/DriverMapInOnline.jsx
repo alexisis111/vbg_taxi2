@@ -51,7 +51,7 @@ const DriverMapInOnline = () => {
     const fetchActiveOrders = useCallback(async () => {
         setLoading(true);
         try {
-            const response = await axios.get('https://34cb-185-108-19-43.ngrok-free.app/active-orders', {
+            const response = await axios.get('https://dc94-185-108-19-43.ngrok-free.app/active-orders', {
                 headers: {
                     "Content-Type": "application/json",
                     "ngrok-skip-browser-warning": "true"
@@ -87,7 +87,7 @@ const DriverMapInOnline = () => {
             setUserLocation([latitude, longitude]);
             setLocationChange(`Геолокация изменилась на ${latitude.toFixed(6)}, ${longitude.toFixed(6)}`);
 
-            axios.post('https://34cb-185-108-19-43.ngrok-free.app/driver', {
+            axios.post('https://dc94-185-108-19-43.ngrok-free.app/driver', {
                 user_id: userId,
                 name: user?.username || 'Неизвестный',
                 tg_username: user?.username,
@@ -118,7 +118,7 @@ const DriverMapInOnline = () => {
         const newStatus = isOnline ? 'offline' : 'online';
 
         try {
-            const response = await axios.put('https://34cb-185-108-19-43.ngrok-free.app/status', {
+            const response = await axios.put('https://dc94-185-108-19-43.ngrok-free.app/status', {
                 user_id: userId,
                 status: newStatus
             });
