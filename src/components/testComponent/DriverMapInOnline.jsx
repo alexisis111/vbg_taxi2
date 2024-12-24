@@ -90,8 +90,7 @@ const DriverMapInOnline = () => {
 
             console.log('Отправка данных на сервер:', {
                 user_id: userId,
-                name: user?.username || 'Неизвестный',
-                tg_username: user?.username || '',
+                name: user || 'Неизвестный',
                 location: `${latitude},${longitude}`,
                 status: isOnline ? 'online' : 'offline'
             });
@@ -100,7 +99,7 @@ const DriverMapInOnline = () => {
             axios.post('https://dc94-185-108-19-43.ngrok-free.app/driver',
                 {
                     user_id: userId,
-                    name: user?.user || 'Неизвестный',
+                    name: user || 'Неизвестный',
                     location: `${latitude},${longitude}`,
                     status: isOnline ? 'online' : 'offline'
                 },
