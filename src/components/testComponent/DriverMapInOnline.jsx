@@ -1,12 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import 'leaflet/dist/leaflet.css';
 import { MapContainer, TileLayer, Marker, useMap } from 'react-leaflet';
-import L from 'leaflet';
 import axios from 'axios';
 import { useTelegram } from '../../hooks/useTelegram';
-import 'leaflet-routing-machine';
 
-// Компонент для отображения маркера на карте
+// Компонент CenteredMarker
 const CenteredMarker = React.memo(({ position }) => {
     const map = useMap();
 
@@ -19,27 +17,24 @@ const CenteredMarker = React.memo(({ position }) => {
     return <Marker position={position} />;
 });
 
-// Компонент для прокладывания маршрута
-const Route = ({ start, end }) => {
-    const map = useMap();
+// Компонент списка заказов
+const OrderList = ({ orders }) => {
+    if (!orders.length) return <p>Нет активных заказов</p>;
 
-    useEffect(() => {
-        if (start && end) {
-            const routeControl = L.Routing.control({
-                waypoints: [
-                    L.latLng(start.lat, start.lng),
-                    L.latLng(end.lat, end.lng)
-                ],
-                routeWhileDragging: true
-            }).addTo(map);
-
-            return () => {
-                map.removeControl(routeControl);
-            };
-        }
-    }, [start, end, map]);
-
-    return null;
+    return (
+        <ul className="order-list">
+            {orders.map(order => (
+                <li key={order.id} className="order-item p-2 border border-blue-300 rounded mb-2">
+                    <strong>Заказ №{order.id}</strong><br />
+                    <strong>Адрес отправления:</strong> {order.pickup}<br />
+                    <strong>Адрес назначения:</strong> {order.dropoff}<br />
+                    <strong>Тариф:</strong> {order.tariff}<br />
+                    <strong>Расстояние:</strong> {order.distance} км<br />
+                    <strong>Стоимость:</strong> {order.price} ₽
+                </li>
+            ))}
+        </ul>
+    );
 };
 
 const DriverMapInOnline = () => {
@@ -50,6 +45,9 @@ const DriverMapInOnline = () => {
     const [errorMessage, setErrorMessage] = useState('');
     const [isOnline, setIsOnline] = useState(false);
     const { tg, user, userId } = useTelegram(); // используем хук для получения tg объекта
+
+
+
 
     // Обновление геолокации
     useEffect(() => {
@@ -64,6 +62,7 @@ const DriverMapInOnline = () => {
                 location: `${latitude},${longitude}`,
                 status: isOnline ? 'online' : 'offline'
             });
+
         };
 
         const handleError = (error) => {
@@ -105,6 +104,7 @@ const DriverMapInOnline = () => {
         }
     };
 
+
     const fetchActiveOrders = async () => {
         if (!isOnline) return; // Не выполняем запрос, если водитель не в сети
 
@@ -131,7 +131,6 @@ const DriverMapInOnline = () => {
             setLoading(false);
         }
     };
-
     useEffect(() => {
         if (isOnline) {
             fetchActiveOrders();
@@ -139,6 +138,7 @@ const DriverMapInOnline = () => {
             return () => clearInterval(intervalId); // Очистка интервала
         }
     }, [isOnline]);
+
 
     return (
         <div className="map-container">
@@ -150,16 +150,6 @@ const DriverMapInOnline = () => {
                     attribution="&copy; OpenStreetMap contributors"
                 />
                 {userLocation && <CenteredMarker position={userLocation} />}
-                {activeOrders.map(order => (
-                    <React.Fragment key={order.id}>
-                        <Marker position={[order.pickupLat, order.pickupLng]} />
-                        <Marker position={[order.dropoffLat, order.dropoffLng]} />
-                        <Route
-                            start={{ lat: order.pickupLat, lng: order.pickupLng }}
-                            end={{ lat: order.dropoffLat, lng: order.dropoffLng }}
-                        />
-                    </React.Fragment>
-                ))}
             </MapContainer>
 
             <div className="location-status mt-2 p-2 border border-gray-300 rounded">
