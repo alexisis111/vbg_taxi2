@@ -104,6 +104,41 @@ const DriverMapInOnline = () => {
         }
     };
 
+    const fetchActiveOrders = async () => {
+        if (!isOnline) return; // Не выполняем запрос, если водитель не в сети
+
+        setLoading(true);
+        try {
+            const response = await axios.get('https://ваш-api-домен/active-orders', {
+                headers: {
+                    "Content-Type": "application/json",
+                    "ngrok-skip-browser-warning": "true"
+                }
+            });
+
+            if (response.status === 200 && Array.isArray(response.data)) {
+                const orders = response.data.filter(order => order.canceled_at === null);
+                setActiveOrders(orders);
+            } else {
+                throw new Error('Некорректный ответ от сервера.');
+            }
+        } catch (error) {
+            setErrorMessage('Не удалось загрузить активные заказы. Попробуйте позже.');
+            console.error('Ошибка при получении активных заказов:', error);
+            setActiveOrders([]);
+        } finally {
+            setLoading(false);
+        }
+    };
+    useEffect(() => {
+        if (isOnline) {
+            fetchActiveOrders();
+            const intervalId = setInterval(fetchActiveOrders, 15000); // Обновление каждые 15 секунд
+            return () => clearInterval(intervalId); // Очистка интервала
+        }
+    }, [isOnline]);
+
+
     return (
         <div className="map-container">
             {errorMessage && <div className="error-message text-red-500 p-2">{errorMessage}</div>}
