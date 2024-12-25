@@ -104,6 +104,7 @@ const DriverMapInOnline = () => {
         }
     };
 
+
     const fetchActiveOrders = async () => {
         if (!isOnline) return; // Не выполняем запрос, если водитель не в сети
 
