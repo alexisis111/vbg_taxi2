@@ -267,22 +267,6 @@ const LocationPicker = () => {
         fetchAddress(coords, setAddress);
     };
 
-    const sendRouteToServer = async (routeCoords) => {
-        try {
-            const response = await fetch('https://a242-185-108-19-43.ngrok-free.app/route-data', {
-                method: 'POST',
-                headers: {
-                    "Content-Type": "application/json",
-                    "ngrok-skip-browser-warning": "true"
-                },
-                body: JSON.stringify({ routeCoords }),
-            });
-            const result = await response.json();
-            console.log('Маршрут успешно отправлен:', result);
-        } catch (error) {
-            console.error('Ошибка при отправке маршрута:', error);
-        }
-    };
 
     // В useEffect после получения маршрута
     useEffect(() => {
@@ -314,7 +298,6 @@ const LocationPicker = () => {
                 const decodedCoords = polyline.decode(encodedPolyline);
 
                 setRouteCoords(decodedCoords);
-                sendRouteToServer(decodedCoords); // Отправляем маршрут на сервер
 
                 const distanceInMeters = route.summary.distance;
                 const distanceInKm = (distanceInMeters / 1000).toFixed(2);
