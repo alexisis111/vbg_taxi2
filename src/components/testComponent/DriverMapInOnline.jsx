@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import 'leaflet/dist/leaflet.css';
-import 'leaflet-routing-machine';
 import { MapContainer, TileLayer, Marker, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import axios from 'axios';
 import { useTelegram } from '../../hooks/useTelegram';
+import 'leaflet-routing-machine';
 
-// Компонент CenteredMarker
+// Компонент для отображения маркера на карте
 const CenteredMarker = React.memo(({ position }) => {
     const map = useMap();
 
@@ -19,58 +19,33 @@ const CenteredMarker = React.memo(({ position }) => {
     return <Marker position={position} />;
 });
 
-// Компонент для отображения маршрута
+// Компонент для прокладывания маршрута
 const Route = ({ start, end }) => {
     const map = useMap();
 
     useEffect(() => {
-        if (!start || !end) return;
+        if (start && end) {
+            const routeControl = L.Routing.control({
+                waypoints: [
+                    L.latLng(start.lat, start.lng),
+                    L.latLng(end.lat, end.lng)
+                ],
+                routeWhileDragging: true
+            }).addTo(map);
 
-        const routingControl = L.Routing.control({
-            waypoints: [L.latLng(start[0], start[1]), L.latLng(end[0], end[1])],
-            routeWhileDragging: false,
-            addWaypoints: false,
-            show: false,
-        }).addTo(map);
-
-        return () => {
-            map.removeControl(routingControl);
-        };
+            return () => {
+                map.removeControl(routeControl);
+            };
+        }
     }, [start, end, map]);
 
     return null;
-};
-
-// Компонент списка заказов
-const OrderList = ({ orders, selectedOrder, onSelectOrder }) => {
-    if (!orders.length) return <p>Нет активных заказов</p>;
-
-    return (
-        <ul className="order-list">
-            {orders.map(order => (
-                <li
-                    key={order.id}
-                    className={`order-item p-2 border rounded mb-2 ${selectedOrder?.id === order.id ? 'border-green-500' : 'border-blue-300'}`}
-                    onClick={() => onSelectOrder(order)}
-                    style={{ cursor: 'pointer' }}
-                >
-                    <strong>Заказ №{order.id}</strong><br />
-                    <strong>Адрес отправления:</strong> {order.pickup}<br />
-                    <strong>Адрес назначения:</strong> {order.dropoff}<br />
-                    <strong>Тариф:</strong> {order.tariff}<br />
-                    <strong>Расстояние:</strong> {order.distance} км<br />
-                    <strong>Стоимость:</strong> {order.price} ₽
-                </li>
-            ))}
-        </ul>
-    );
 };
 
 const DriverMapInOnline = () => {
     const [userLocation, setUserLocation] = useState(null);
     const [locationChange, setLocationChange] = useState('');
     const [activeOrders, setActiveOrders] = useState([]);
-    const [selectedOrder, setSelectedOrder] = useState(null);
     const [loading, setLoading] = useState(true);
     const [errorMessage, setErrorMessage] = useState('');
     const [isOnline, setIsOnline] = useState(false);
@@ -82,6 +57,13 @@ const DriverMapInOnline = () => {
             const { latitude, longitude } = position.coords;
             setUserLocation([latitude, longitude]);
             setLocationChange(`Геолокация изменилась на ${latitude.toFixed(6)}, ${longitude.toFixed(6)}`);
+
+            console.log('Отправка данных на сервер:', {
+                user_id: userId,
+                name: user || 'Неизвестный',
+                location: `${latitude},${longitude}`,
+                status: isOnline ? 'online' : 'offline'
+            });
         };
 
         const handleError = (error) => {
@@ -97,8 +79,9 @@ const DriverMapInOnline = () => {
             );
             return () => navigator.geolocation.clearWatch(watchId);
         }
-    }, []);
+    }, [userId, user?.user, isOnline]);
 
+    // Обработчик для изменения статуса водителя
     const toggleDriverStatus = async () => {
         const newStatus = isOnline ? 'offline' : 'online';
 
@@ -111,8 +94,7 @@ const DriverMapInOnline = () => {
             if (response.status === 200) {
                 setIsOnline(!isOnline);
                 if (newStatus === 'offline') {
-                    setActiveOrders([]);
-                    setSelectedOrder(null); // Сбрасываем выделенный заказ
+                    setActiveOrders([]); // Сбрасываем заказы, если водитель уходит в офлайн
                 }
             } else {
                 throw new Error('Ошибка обновления статуса.');
@@ -124,7 +106,7 @@ const DriverMapInOnline = () => {
     };
 
     const fetchActiveOrders = async () => {
-        if (!isOnline) return;
+        if (!isOnline) return; // Не выполняем запрос, если водитель не в сети
 
         setLoading(true);
         try {
@@ -153,8 +135,8 @@ const DriverMapInOnline = () => {
     useEffect(() => {
         if (isOnline) {
             fetchActiveOrders();
-            const intervalId = setInterval(fetchActiveOrders, 15000);
-            return () => clearInterval(intervalId);
+            const intervalId = setInterval(fetchActiveOrders, 15000); // Обновление каждые 15 секунд
+            return () => clearInterval(intervalId); // Очистка интервала
         }
     }, [isOnline]);
 
@@ -168,12 +150,16 @@ const DriverMapInOnline = () => {
                     attribution="&copy; OpenStreetMap contributors"
                 />
                 {userLocation && <CenteredMarker position={userLocation} />}
-                {selectedOrder && (
-                    <Route
-                        start={[selectedOrder.pickupLat, selectedOrder.pickupLng]}
-                        end={[selectedOrder.dropoffLat, selectedOrder.dropoffLng]}
-                    />
-                )}
+                {activeOrders.map(order => (
+                    <React.Fragment key={order.id}>
+                        <Marker position={[order.pickupLat, order.pickupLng]} />
+                        <Marker position={[order.dropoffLat, order.dropoffLng]} />
+                        <Route
+                            start={{ lat: order.pickupLat, lng: order.pickupLng }}
+                            end={{ lat: order.dropoffLat, lng: order.dropoffLng }}
+                        />
+                    </React.Fragment>
+                ))}
             </MapContainer>
 
             <div className="location-status mt-2 p-2 border border-gray-300 rounded">
@@ -201,11 +187,7 @@ const DriverMapInOnline = () => {
                     ) : (
                         <>
                             <h3 className="font-bold mt-4">Активные заказы</h3>
-                            <OrderList
-                                orders={activeOrders}
-                                selectedOrder={selectedOrder}
-                                onSelectOrder={setSelectedOrder}
-                            />
+                            <OrderList orders={activeOrders} />
                         </>
                     )}
                 </>
