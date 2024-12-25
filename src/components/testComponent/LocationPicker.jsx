@@ -203,6 +203,7 @@ const LocationPicker = () => {
         const map = useMap();
         useEffect(() => {
             if (pickupCoords && dropoffCoords) {
+
                 const bounds = L.latLngBounds([pickupCoords, dropoffCoords]);
                 if (routeCoords) {
                     bounds.extend(routeCoords.map(coord => [coord[0], coord[1]]));
@@ -239,6 +240,7 @@ const LocationPicker = () => {
             console.log("Координаты назначения:", dropoffCoords);
         }
     };
+
 
 // Обновляем useEffect для отслеживания изменений координат
     useEffect(() => {
@@ -362,7 +364,7 @@ const LocationPicker = () => {
             price: totalPrice, // Добавляем сумму заказа
             user,
             queryId,
-            userId
+            userId,
         };
 
         console.log("Данные для отправки:", orderData); // Логирование данных
