@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import 'leaflet/dist/leaflet.css';
-import { MapContainer, TileLayer, Marker, Polyline, useMap } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, useMap } from 'react-leaflet';
 import axios from 'axios';
 import { useTelegram } from '../../hooks/useTelegram';
 
@@ -18,7 +18,7 @@ const CenteredMarker = React.memo(({ position }) => {
 });
 
 // Компонент списка заказов
-const OrderList = ({ orders, onOrderSelect }) => {
+const OrderList = ({ orders }) => {
     if (!orders.length) return <p>Нет активных заказов</p>;
 
     return (
@@ -31,12 +31,6 @@ const OrderList = ({ orders, onOrderSelect }) => {
                     <strong>Тариф:</strong> {order.tariff}<br />
                     <strong>Расстояние:</strong> {order.distance} км<br />
                     <strong>Стоимость:</strong> {order.price} ₽
-                    <button
-                        onClick={() => onOrderSelect(order)}
-                        className="ml-2 p-1 bg-blue-500 text-white rounded"
-                    >
-                        Открыть карту
-                    </button>
                 </li>
             ))}
         </ul>
@@ -50,8 +44,10 @@ const DriverMapInOnline = () => {
     const [loading, setLoading] = useState(true);
     const [errorMessage, setErrorMessage] = useState('');
     const [isOnline, setIsOnline] = useState(false);
-    const [selectedOrder, setSelectedOrder] = useState(null);
     const { tg, user, userId } = useTelegram(); // используем хук для получения tg объекта
+
+
+
 
     // Обновление геолокации
     useEffect(() => {
@@ -59,6 +55,14 @@ const DriverMapInOnline = () => {
             const { latitude, longitude } = position.coords;
             setUserLocation([latitude, longitude]);
             setLocationChange(`Геолокация изменилась на ${latitude.toFixed(6)}, ${longitude.toFixed(6)}`);
+
+            console.log('Отправка данных на сервер:', {
+                user_id: userId,
+                name: user || 'Неизвестный',
+                location: `${latitude},${longitude}`,
+                status: isOnline ? 'online' : 'offline'
+            });
+
         };
 
         const handleError = (error) => {
@@ -100,6 +104,7 @@ const DriverMapInOnline = () => {
         }
     };
 
+
     const fetchActiveOrders = async () => {
         if (!isOnline) return; // Не выполняем запрос, если водитель не в сети
 
@@ -126,7 +131,6 @@ const DriverMapInOnline = () => {
             setLoading(false);
         }
     };
-
     useEffect(() => {
         if (isOnline) {
             fetchActiveOrders();
@@ -135,20 +139,6 @@ const DriverMapInOnline = () => {
         }
     }, [isOnline]);
 
-    const handleOrderSelect = (order) => {
-        setSelectedOrder(order);
-    };
-
-    const renderRoute = () => {
-        if (!selectedOrder) return null;
-
-        const pickupCoords = selectedOrder.pickup_coords; // Пример: [latitude, longitude]
-        const dropoffCoords = selectedOrder.dropoff_coords; // Пример: [latitude, longitude]
-
-        return (
-            <Polyline positions={[pickupCoords, dropoffCoords]} color="blue" />
-        );
-    };
 
     return (
         <div className="map-container">
@@ -160,7 +150,6 @@ const DriverMapInOnline = () => {
                     attribution="&copy; OpenStreetMap contributors"
                 />
                 {userLocation && <CenteredMarker position={userLocation} />}
-                {selectedOrder && renderRoute()}
             </MapContainer>
 
             <div className="location-status mt-2 p-2 border border-gray-300 rounded">
@@ -188,7 +177,7 @@ const DriverMapInOnline = () => {
                     ) : (
                         <>
                             <h3 className="font-bold mt-4">Активные заказы</h3>
-                            <OrderList orders={activeOrders} onOrderSelect={handleOrderSelect} />
+                            <OrderList orders={activeOrders} />
                         </>
                     )}
                 </>
