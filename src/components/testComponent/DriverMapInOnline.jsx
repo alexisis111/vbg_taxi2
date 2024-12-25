@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import 'leaflet/dist/leaflet.css';
+import 'leaflet-routing-machine';
 import { MapContainer, TileLayer, Marker, useMap } from 'react-leaflet';
+import L from 'leaflet';
 import axios from 'axios';
 import { useTelegram } from '../../hooks/useTelegram';
 
@@ -17,14 +19,41 @@ const CenteredMarker = React.memo(({ position }) => {
     return <Marker position={position} />;
 });
 
+// Компонент для отображения маршрута
+const Route = ({ start, end }) => {
+    const map = useMap();
+
+    useEffect(() => {
+        if (!start || !end) return;
+
+        const routingControl = L.Routing.control({
+            waypoints: [L.latLng(start[0], start[1]), L.latLng(end[0], end[1])],
+            routeWhileDragging: false,
+            addWaypoints: false,
+            show: false,
+        }).addTo(map);
+
+        return () => {
+            map.removeControl(routingControl);
+        };
+    }, [start, end, map]);
+
+    return null;
+};
+
 // Компонент списка заказов
-const OrderList = ({ orders }) => {
+const OrderList = ({ orders, selectedOrder, onSelectOrder }) => {
     if (!orders.length) return <p>Нет активных заказов</p>;
 
     return (
         <ul className="order-list">
             {orders.map(order => (
-                <li key={order.id} className="order-item p-2 border border-blue-300 rounded mb-2">
+                <li
+                    key={order.id}
+                    className={`order-item p-2 border rounded mb-2 ${selectedOrder?.id === order.id ? 'border-green-500' : 'border-blue-300'}`}
+                    onClick={() => onSelectOrder(order)}
+                    style={{ cursor: 'pointer' }}
+                >
                     <strong>Заказ №{order.id}</strong><br />
                     <strong>Адрес отправления:</strong> {order.pickup}<br />
                     <strong>Адрес назначения:</strong> {order.dropoff}<br />
@@ -41,13 +70,11 @@ const DriverMapInOnline = () => {
     const [userLocation, setUserLocation] = useState(null);
     const [locationChange, setLocationChange] = useState('');
     const [activeOrders, setActiveOrders] = useState([]);
+    const [selectedOrder, setSelectedOrder] = useState(null);
     const [loading, setLoading] = useState(true);
     const [errorMessage, setErrorMessage] = useState('');
     const [isOnline, setIsOnline] = useState(false);
     const { tg, user, userId } = useTelegram(); // используем хук для получения tg объекта
-
-
-
 
     // Обновление геолокации
     useEffect(() => {
@@ -55,14 +82,6 @@ const DriverMapInOnline = () => {
             const { latitude, longitude } = position.coords;
             setUserLocation([latitude, longitude]);
             setLocationChange(`Геолокация изменилась на ${latitude.toFixed(6)}, ${longitude.toFixed(6)}`);
-
-            console.log('Отправка данных на сервер:', {
-                user_id: userId,
-                name: user || 'Неизвестный',
-                location: `${latitude},${longitude}`,
-                status: isOnline ? 'online' : 'offline'
-            });
-
         };
 
         const handleError = (error) => {
@@ -78,9 +97,8 @@ const DriverMapInOnline = () => {
             );
             return () => navigator.geolocation.clearWatch(watchId);
         }
-    }, [userId, user?.user, isOnline]);
+    }, []);
 
-    // Обработчик для изменения статуса водителя
     const toggleDriverStatus = async () => {
         const newStatus = isOnline ? 'offline' : 'online';
 
@@ -93,7 +111,8 @@ const DriverMapInOnline = () => {
             if (response.status === 200) {
                 setIsOnline(!isOnline);
                 if (newStatus === 'offline') {
-                    setActiveOrders([]); // Сбрасываем заказы, если водитель уходит в офлайн
+                    setActiveOrders([]);
+                    setSelectedOrder(null); // Сбрасываем выделенный заказ
                 }
             } else {
                 throw new Error('Ошибка обновления статуса.');
@@ -104,9 +123,8 @@ const DriverMapInOnline = () => {
         }
     };
 
-
     const fetchActiveOrders = async () => {
-        if (!isOnline) return; // Не выполняем запрос, если водитель не в сети
+        if (!isOnline) return;
 
         setLoading(true);
         try {
@@ -131,14 +149,14 @@ const DriverMapInOnline = () => {
             setLoading(false);
         }
     };
+
     useEffect(() => {
         if (isOnline) {
             fetchActiveOrders();
-            const intervalId = setInterval(fetchActiveOrders, 15000); // Обновление каждые 15 секунд
-            return () => clearInterval(intervalId); // Очистка интервала
+            const intervalId = setInterval(fetchActiveOrders, 15000);
+            return () => clearInterval(intervalId);
         }
     }, [isOnline]);
-
 
     return (
         <div className="map-container">
@@ -150,6 +168,12 @@ const DriverMapInOnline = () => {
                     attribution="&copy; OpenStreetMap contributors"
                 />
                 {userLocation && <CenteredMarker position={userLocation} />}
+                {selectedOrder && (
+                    <Route
+                        start={[selectedOrder.pickupLat, selectedOrder.pickupLng]}
+                        end={[selectedOrder.dropoffLat, selectedOrder.dropoffLng]}
+                    />
+                )}
             </MapContainer>
 
             <div className="location-status mt-2 p-2 border border-gray-300 rounded">
@@ -177,7 +201,11 @@ const DriverMapInOnline = () => {
                     ) : (
                         <>
                             <h3 className="font-bold mt-4">Активные заказы</h3>
-                            <OrderList orders={activeOrders} />
+                            <OrderList
+                                orders={activeOrders}
+                                selectedOrder={selectedOrder}
+                                onSelectOrder={setSelectedOrder}
+                            />
                         </>
                     )}
                 </>
