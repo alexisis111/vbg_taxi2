@@ -269,7 +269,7 @@ const LocationPicker = () => {
 
     const sendRouteToServer = async (routeCoords) => {
         try {
-            const response = await fetch('https://dc94-185-108-19-43.ngrok-free.app/route-data', {
+            const response = await fetch('https://a242-185-108-19-43.ngrok-free.app/route-data', {
                 method: 'POST',
                 headers: {
                     "Content-Type": "application/json",
@@ -384,7 +384,7 @@ const LocationPicker = () => {
 
         console.log("Данные для отправки:", orderData); // Логирование данных
 
-        fetch('https://dc94-185-108-19-43.ngrok-free.app/order-data', {
+        fetch('https://a242-185-108-19-43.ngrok-free.app/order-data', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
