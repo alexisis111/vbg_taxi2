@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 import 'leaflet/dist/leaflet.css';
 import { MapContainer, TileLayer, Marker, useMap } from 'react-leaflet';
 import axios from 'axios';
@@ -46,49 +46,8 @@ const DriverMapInOnline = () => {
     const [isOnline, setIsOnline] = useState(false);
     const { tg, user, userId } = useTelegram(); // используем хук для получения tg объекта
 
-    const [socket, setSocket] = useState(null);
 
-    // Функция для получения активных заказов через WebSocket
-    const setupWebSocket = useCallback(() => {
-        const ws = new WebSocket('ws://localhost:3001');
 
-        ws.onopen = () => {
-            console.log('WebSocket соединение установлено');
-            ws.send(JSON.stringify({ action: 'subscribe', user_id: userId }));
-        };
-
-        ws.onmessage = (event) => {
-            const data = JSON.parse(event.data);
-
-            if (data.type === 'orders') {
-                setActiveOrders(data.orders); // Обновляем список активных заказов
-                setLoading(false); // Заказы загружены
-            } else if (data.type === 'location') {
-                setUserLocation(data.location); // Обновляем геолокацию
-            }
-        };
-
-        ws.onerror = (error) => {
-            console.error('WebSocket ошибка:', error);
-            setErrorMessage('Ошибка соединения с сервером WebSocket.');
-        };
-
-        ws.onclose = () => {
-            console.log('WebSocket соединение закрыто');
-        };
-
-        setSocket(ws);
-
-        return ws;
-    }, [userId]);
-
-    // Открытие WebSocket-соединения при монтировании компонента
-    useEffect(() => {
-        if (isOnline) {
-            const ws = setupWebSocket();
-            return () => ws.close(); // Закрыть WebSocket при размонтировании компонента
-        }
-    }, [isOnline, setupWebSocket]);
 
     // Обновление геолокации
     useEffect(() => {
@@ -104,14 +63,6 @@ const DriverMapInOnline = () => {
                 status: isOnline ? 'online' : 'offline'
             });
 
-            if (socket) {
-                socket.send(JSON.stringify({
-                    action: 'update_location',
-                    user_id: userId,
-                    location: `${latitude},${longitude}`,
-                    status: isOnline ? 'online' : 'offline'
-                }));
-            }
         };
 
         const handleError = (error) => {
@@ -127,7 +78,7 @@ const DriverMapInOnline = () => {
             );
             return () => navigator.geolocation.clearWatch(watchId);
         }
-    }, [userId, user?.user, isOnline, socket]);
+    }, [userId, user?.user, isOnline]);
 
     // Обработчик для изменения статуса водителя
     const toggleDriverStatus = async () => {
