@@ -1,13 +1,12 @@
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
-import {MapContainer, TileLayer, Marker, useMap, useMapEvents, Polyline} from 'react-leaflet';
-import {useState, useEffect, useRef, useCallback} from 'react';
+import { MapContainer, TileLayer, Marker, useMap, useMapEvents, Polyline } from 'react-leaflet';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import axios from 'axios';
 import polyline from '@mapbox/polyline';
 import Tour from 'reactour';
-import './locationPicker.css'
+import './locationPicker.css';
 import { useTelegram } from '../../hooks/useTelegram'; // импорт хука для работы с Telegram
-
 
 import marker1 from '/assets/marker-icon-blue.png';
 import marker2 from '/assets/marker-icon-green.png';
@@ -43,17 +42,14 @@ const LocationPicker = () => {
     const [selectedTariff, setSelectedTariff] = useState(null);
     const { tg, user, userId, queryId } = useTelegram(); // используем хук для получения tg объекта
 
-
-
     // Определяем шаги тура
     const steps = [
         {
             selector: '.begin',
             content: (
                 <div className='flex flex-col items-center justify-center'>
-                    <p className='text-black text-center'>Проведите пальцем снизу - вверх, чтобы открыть приложение на весь
-                        экран</p>
-                    <img src={swipeUp} alt="Gif" className='size-40'/>
+                    <p className='text-black text-center'>Проведите пальцем снизу - вверх, чтобы открыть приложение на весь экран</p>
+                    <img src={swipeUp} alt="Gif" className='size-40' />
                 </div>
             ),
         },
@@ -61,9 +57,7 @@ const LocationPicker = () => {
             selector: '.leaMaps',
             content: (
                 <div className='flex flex-col items-center justify-center'>
-                    <div className='text-black text-center'>Верхнюю часть экрана занимает карта, именно на ней происходит выбор
-                        маршрута.
-                    </div>
+                    <div className='text-black text-center'>Верхнюю часть экрана занимает карта, именно на ней происходит выбор маршрута.</div>
                 </div>
             ),
         },
@@ -73,10 +67,9 @@ const LocationPicker = () => {
                 <div className='flex flex-col items-center justify-center'>
                     <div className='text-black text-center'>
                         <div className='flex items-center justify-center'>
-                            <img src={marker1}/>
+                            <img src={marker1} />
                         </div>
-                        Тут вы увидите физический адрес вашего местоположения. Ввести адрес
-                        вручную пока нельзя.
+                        Тут вы увидите физический адрес вашего местоположения. Ввести адрес вручную пока нельзя.
                         Адрес появится автоматически. Для смены адреса, переместите маркер на карте.
                     </div>
                 </div>
@@ -93,18 +86,17 @@ const LocationPicker = () => {
                         Как указать конечную точку.
                     </div>
                     <div>
-                        <img src={add2marker} alt="" className='size-64'/>
+                        <img src={add2marker} alt="" className='size-64' />
                     </div>
                 </div>
             ),
-            //content: ,
         },
         {
             selector: '.flex-shrink-0',
             content: (
                 <div className='flex flex-col items-center justify-center'>
                     <p className='text-black text-center'>Здесь вы видите различные варианты тарифов. Свайп влево - покажет все имеющиеся тарифы.</p>
-                    <img src={swipeLeftRight} alt="Gif" className='size-40'/>
+                    <img src={swipeLeftRight} alt="Gif" className='size-40' />
                 </div>
             ),
         },
@@ -127,129 +119,18 @@ const LocationPicker = () => {
         }
     }, []);
 
-    // Тур будет всегда показываться при входе
-    // useEffect(() => {
-    //     setIsTourOpen(true);
-    // }, []);
-
-    const calculatePriceEco = (distance) => {
-        let basePrice;
-
-        if (distance <= 2) {
-            basePrice = 150;
-        } else {
-            basePrice = 150 + (distance - 2) * 20;
+    // Функция для получения координат по адресу
+    const fetchCoordinates = async (address) => {
+        const response = await fetch(`https://nominatim.openstreetmap.org/search?format=jsonv2&q=${address}`);
+        const data = await response.json();
+        if (data.length > 0) {
+            const { lat, lon } = data[0];
+            return [parseFloat(lat), parseFloat(lon)];
         }
-
-        let additionalCharge = 0;
-        if (distance > 10) {
-            const extraDistance = distance - 10;
-            const additionalBlocks = Math.floor(extraDistance / 10);
-            additionalCharge = additionalBlocks * 100;
-        }
-
-        const totalPrice = basePrice + additionalCharge;
-        return Math.round(totalPrice.toFixed(1));
-    };
-
-    const calculatePriceComf = (distance) => {
-        let basePrice;
-
-        if (distance <= 2) {
-            basePrice = 170;
-        } else {
-            basePrice = 170 + (distance - 2) * 20;
-        }
-
-        let additionalCharge = 0;
-        if (distance > 10) {
-            const extraDistance = distance - 10;
-            const additionalBlocks = Math.floor(extraDistance / 10);
-            additionalCharge = additionalBlocks * 100;
-        }
-
-        const totalPrice = basePrice + additionalCharge;
-        return Math.round(totalPrice.toFixed(1));
-    };
-
-    const calculatePriceKids = (distance) => {
-        let basePrice;
-
-        if (distance <= 2) {
-            basePrice = 190;
-        } else {
-            basePrice = 190 + (distance - 2) * 20;
-        }
-
-        let additionalCharge = 0;
-        if (distance > 10) {
-            const extraDistance = distance - 10;
-            const additionalBlocks = Math.floor(extraDistance / 10);
-            additionalCharge = additionalBlocks * 100;
-        }
-
-        const totalPrice = basePrice + additionalCharge;
-        return Math.round(totalPrice.toFixed(1));
-    };
-
-    //тарифы
-    const tariffs = [
-        { id: 'eco', name: 'Эконом', img: ecoImg, calculatePrice: calculatePriceEco },
-        { id: 'comfort', name: 'Комфорт', img: comfImg, calculatePrice: calculatePriceComf },
-        { id: 'kids', name: 'Детский', img: kidsImg, calculatePrice: calculatePriceKids },
-    ];
-
-    const MapUpdater = () => {
-        const map = useMap();
-        useEffect(() => {
-            if (pickupCoords && dropoffCoords) {
-
-                const bounds = L.latLngBounds([pickupCoords, dropoffCoords]);
-                if (routeCoords) {
-                    bounds.extend(routeCoords.map(coord => [coord[0], coord[1]]));
-                }
-                map.fitBounds(bounds, {padding: [50, 50]});
-            } else if (pickupCoords) {
-                map.setView(pickupCoords, 18);
-            }
-        }, [pickupCoords, dropoffCoords, routeCoords, map]);
         return null;
     };
 
-    useEffect(() => {
-        if (navigator.geolocation) {
-            navigator.geolocation.getCurrentPosition(
-                (position) => {
-                    const {latitude, longitude} = position.coords;
-                    setUserLocation([latitude, longitude]);
-                    setPickupCoords([latitude, longitude]);
-                    fetchAddress([latitude, longitude], setPickup);
-                },
-                (error) => {
-                    console.error('Error getting location:', error);
-                }
-            );
-        } else {
-            console.error('Geolocation is not supported by this browser.');
-        }
-    }, []);
-
-    const logCoordinates = (pickupCoords, dropoffCoords) => {
-        if (pickupCoords && dropoffCoords) {
-            console.log("Координаты отправления:", pickupCoords);
-            console.log("Координаты назначения:", dropoffCoords);
-        }
-    };
-
-
-// Обновляем useEffect для отслеживания изменений координат
-    useEffect(() => {
-        if (pickupCoords && dropoffCoords) {
-            getRoute([pickupCoords, dropoffCoords]);
-            logCoordinates(pickupCoords, dropoffCoords); // Выводим координаты в консоль
-        }
-    }, [pickupCoords, dropoffCoords]);
-
+    // Функция для получения адреса по координатам
     const fetchAddress = async (coords, setAddress) => {
         const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${coords[0]}&lon=${coords[1]}&accept-language=ru`);
         const data = await response.json();
@@ -269,15 +150,12 @@ const LocationPicker = () => {
         fetchAddress(coords, setAddress);
     };
 
-
-    // В useEffect после получения маршрута
+    // Обновляем useEffect для отслеживания изменений координат
     useEffect(() => {
         if (pickupCoords && dropoffCoords) {
             getRoute([pickupCoords, dropoffCoords]);
-            logCoordinates(pickupCoords, dropoffCoords); // Выводим координаты в консоль
         }
     }, [pickupCoords, dropoffCoords]);
-
 
     const getRoute = async (coordinates) => {
         try {
@@ -311,8 +189,6 @@ const LocationPicker = () => {
             console.error('Ошибка при получении маршрута:', error);
         }
     };
-
-
 
     const LocationMarker = () => {
         useMapEvents({
@@ -358,7 +234,8 @@ const LocationPicker = () => {
         const orderData = {
             pickup,
             dropoff,
-            // Передаем name тарифа
+            pickupCoords, // Передаем координаты отправления
+            dropoffCoords, // Передаем координаты назначения
             tariff: selectedTariffObj ? selectedTariffObj.name : selectedTariff,
             distance: routeDistance,
             price: totalPrice, // Добавляем сумму заказа
@@ -395,8 +272,6 @@ const LocationPicker = () => {
         };
     }, [handleSendData, tg]);
 
-
-
     return (
         <>
             <div className='flex'>
@@ -405,8 +280,7 @@ const LocationPicker = () => {
             <Tour
                 steps={steps}
                 isOpen={isTourOpen}
-                onRequestClose={() => {
-                }}
+                onRequestClose={() => { }}
                 rounded={10}
                 showButtons={true}
                 showCloseButton={false}
@@ -434,8 +308,6 @@ const LocationPicker = () => {
                     }
                 }}
             />
-
-
             <div className="leaMaps">
                 <MapContainer
                     center={[60.7076, 28.7528]}
@@ -469,77 +341,9 @@ const LocationPicker = () => {
                             }}
                         />
                     )}
-                    {routeCoords && (
-                        <Polyline positions={routeCoords} color="blue" weight={5}/>
-                    )}
-
-                    <LocationMarker/>
-                    <MapUpdater/>
+                    {routeCoords && <Polyline positions={routeCoords} color="blue" />}
+                    <LocationMarker />
                 </MapContainer>
-            </div>
-
-            <div className="w-full rounded-[20px] shadow-lg">
-                <div className="">
-                    <div className="flex items-center relative">
-                        <input
-                            id="pickup"
-                            type="text"
-                            value={pickup}
-                            placeholder="Откуда вас забрать?"
-                            className="flex-grow p-3 border-none placeholder-gray-500 focus:outline-none"
-                            style={{
-                                backgroundColor: "var(--tg-theme-bg-color)",
-                                color: "var(--tg-theme-text-color)",
-                                "::placeholder": {
-                                    color: "var(--tg-theme-hint-color)"
-                                }
-                            }}
-                            readOnly
-                        />
-                    </div>
-                    <div className="flex items-center relative">
-                        <input
-                            id="dropoff"
-                            type="text"
-                            value={dropoff}
-                            placeholder="Куда отвезти?"
-                            className="flex-grow p-3 border-none border-t border-gray-300 placeholder-gray-500 focus:outline-none"
-                            style={{
-                                backgroundColor: "var(--tg-theme-bg-color)",
-                                color: "var(--tg-theme-text-color)",
-                                "::placeholder": {
-                                    color: "var(--tg-theme-hint-color)"
-                                }
-                            }}
-                            readOnly
-                        />
-                    </div>
-                </div>
-            </div>
-
-
-            <div className="container py-2">
-                <div className="flex space-x-3 overflow-x-auto p-4">
-                    {tariffs.map((tariff) => (
-                        <div
-                            key={tariff.id}
-                            className={`flex-shrink-0 shadow-2xl rounded-lg overflow-hidden w-1/3 cursor-pointer ${
-                                selectedTariff === tariff.id ? 'ring-4 ring-blue-600' : ''
-                            }`}
-                            onClick={() => setSelectedTariff(tariff.id)}
-                        >
-                            <img className="object-cover" src={tariff.img} alt={`${tariff.name} Image`}/>
-                            <div className="p-2 text-sm">
-                                <h3 className="font-bold mb-2">{tariff.name}</h3>
-                                <p className="">
-                                    {routeDistance
-                                        ? `${tariff.calculatePrice(routeDistance)} рублей`
-                                        : 'Сумма появится после указания маршрута'}
-                                </p>
-                            </div>
-                        </div>
-                    ))}
-                </div>
             </div>
         </>
     );
