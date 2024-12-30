@@ -28,6 +28,7 @@ const OrderList = ({ orders }) => {
                     <strong>Заказ №{order.id}</strong><br />
                     <strong>Адрес отправления:</strong> {order.pickup}<br />
                     <strong>Адрес назначения:</strong> {order.dropoff}<br />
+                    <strong>Координаты назначения:</strong> {order.dropoffLat}, {order.dropoffLng}<br />
                     <strong>Тариф:</strong> {order.tariff}<br />
                     <strong>Расстояние:</strong> {order.distance} км<br />
                     <strong>Стоимость:</strong> {order.price} ₽
@@ -44,12 +45,8 @@ const DriverMapInOnline = () => {
     const [loading, setLoading] = useState(true);
     const [errorMessage, setErrorMessage] = useState('');
     const [isOnline, setIsOnline] = useState(false);
-    const { tg, user, userId } = useTelegram(); // используем хук для получения tg объекта
+    const { tg, user, userId } = useTelegram();
 
-
-
-
-    // Обновление геолокации
     useEffect(() => {
         const throttledPositionUpdate = (position) => {
             const { latitude, longitude } = position.coords;
@@ -62,7 +59,6 @@ const DriverMapInOnline = () => {
                 location: `${latitude},${longitude}`,
                 status: isOnline ? 'online' : 'offline'
             });
-
         };
 
         const handleError = (error) => {
@@ -80,7 +76,6 @@ const DriverMapInOnline = () => {
         }
     }, [userId, user?.user, isOnline]);
 
-    // Обработчик для изменения статуса водителя
     const toggleDriverStatus = async () => {
         const newStatus = isOnline ? 'offline' : 'online';
 
@@ -93,7 +88,7 @@ const DriverMapInOnline = () => {
             if (response.status === 200) {
                 setIsOnline(!isOnline);
                 if (newStatus === 'offline') {
-                    setActiveOrders([]); // Сбрасываем заказы, если водитель уходит в офлайн
+                    setActiveOrders([]);
                 }
             } else {
                 throw new Error('Ошибка обновления статуса.');
@@ -104,9 +99,8 @@ const DriverMapInOnline = () => {
         }
     };
 
-
     const fetchActiveOrders = async () => {
-        if (!isOnline) return; // Не выполняем запрос, если водитель не в сети
+        if (!isOnline) return;
 
         setLoading(true);
         try {
@@ -118,7 +112,13 @@ const DriverMapInOnline = () => {
             });
 
             if (response.status === 200 && Array.isArray(response.data)) {
-                const orders = response.data.filter(order => order.canceled_at === null);
+                const orders = response.data
+                    .filter(order => order.canceled_at === null)
+                    .map(order => ({
+                        ...order,
+                        dropoffLat: order.dropoffCoords?.[0] || 'Не указано',
+                        dropoffLng: order.dropoffCoords?.[1] || 'Не указано'
+                    }));
                 setActiveOrders(orders);
             } else {
                 throw new Error('Некорректный ответ от сервера.');
@@ -132,9 +132,7 @@ const DriverMapInOnline = () => {
         }
     };
 
-
     useEffect(() => {
-        // Проверка статуса водителя при загрузке страницы
         const checkDriverStatus = async () => {
             try {
                 const response = await axios.get(`https://13c6-185-108-19-43.ngrok-free.app/driver-status/${userId}`, {
@@ -161,8 +159,8 @@ const DriverMapInOnline = () => {
     useEffect(() => {
         if (isOnline) {
             fetchActiveOrders();
-            const intervalId = setInterval(fetchActiveOrders, 15000); // Обновление каждые 15 секунд
-            return () => clearInterval(intervalId); // Очистка интервала
+            const intervalId = setInterval(fetchActiveOrders, 15000);
+            return () => clearInterval(intervalId);
         }
     }, [isOnline]);
 
