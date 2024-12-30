@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import 'leaflet/dist/leaflet.css';
-import { MapContainer, TileLayer, Marker, useMap } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, useMap, Polyline } from 'react-leaflet';
 import axios from 'axios';
 import { useTelegram } from '../../hooks/useTelegram';
+
+const API_KEY = '5b3ce3597851110001cf6248143b17765c594c79a4a1a61dc30df2cb';
 
 // Компонент CenteredMarker
 const CenteredMarker = React.memo(({ position }) => {
@@ -18,13 +20,17 @@ const CenteredMarker = React.memo(({ position }) => {
 });
 
 // Компонент списка заказов
-const OrderList = ({ orders }) => {
+const OrderList = ({ orders, onSelectOrder }) => {
     if (!orders.length) return <p>Нет активных заказов</p>;
 
     return (
         <ul className="order-list">
             {orders.map(order => (
-                <li key={order.id} className="order-item p-2 border border-blue-300 rounded mb-2">
+                <li
+                    key={order.id}
+                    className="order-item p-2 border border-blue-300 rounded mb-2"
+                    onClick={() => onSelectOrder(order)} // Выбор заказа
+                >
                     <strong>Заказ №{order.id}</strong><br />
                     <strong>Адрес отправления:</strong> {order.pickup}<br />
                     <strong>Адрес назначения:</strong> {order.dropoff}<br />
@@ -45,6 +51,8 @@ const DriverMapInOnline = () => {
     const [loading, setLoading] = useState(true);
     const [errorMessage, setErrorMessage] = useState('');
     const [isOnline, setIsOnline] = useState(false);
+    const [selectedOrder, setSelectedOrder] = useState(null);
+    const [routeCoords, setRouteCoords] = useState([]);
     const { tg, user, userId } = useTelegram();
 
     useEffect(() => {
@@ -116,7 +124,6 @@ const DriverMapInOnline = () => {
                     .filter(order => order.canceled_at === null)
                     .map(order => ({
                         ...order,
-                        // Используем dropoff_lat и dropoff_lng для координат
                         dropoffLat: order.dropoff_lat || 'Не указано',
                         dropoffLng: order.dropoff_lng || 'Не указано'
                     }));
@@ -133,6 +140,37 @@ const DriverMapInOnline = () => {
         }
     };
 
+    const getRoute = async (pickupCoords, dropoffCoords) => {
+        try {
+            const response = await axios.post(
+                'https://api.openrouteservice.org/v2/directions/driving-car',
+                {
+                    coordinates: [pickupCoords, dropoffCoords].map(coord => [coord[1], coord[0]]),
+                },
+                {
+                    headers: {
+                        'Authorization': API_KEY, // Укажите ваш API-ключ
+                    }
+                }
+            );
+
+            if (response.data.routes && response.data.routes[0]) {
+                const route = response.data.routes[0].geometry;
+                const decodedRoute = polyline.decode(route);
+                setRouteCoords(decodedRoute);
+            }
+        } catch (error) {
+            setErrorMessage('Не удалось построить маршрут. Попробуйте позже.');
+            console.error('Ошибка при получении маршрута:', error);
+        }
+    };
+
+    const handleSelectOrder = (order) => {
+        setSelectedOrder(order);
+        const pickupCoords = [userLocation[0], userLocation[1]];
+        const dropoffCoords = [order.dropoffLat, order.dropoffLng];
+        getRoute(pickupCoords, dropoffCoords);
+    };
 
     useEffect(() => {
         const checkDriverStatus = async () => {
@@ -176,6 +214,7 @@ const DriverMapInOnline = () => {
                     attribution="&copy; OpenStreetMap contributors"
                 />
                 {userLocation && <CenteredMarker position={userLocation} />}
+                {routeCoords.length > 0 && <Polyline positions={routeCoords} color="blue" />}
             </MapContainer>
 
             <div className="location-status mt-2 p-2 border border-gray-300 rounded">
@@ -203,7 +242,7 @@ const DriverMapInOnline = () => {
                     ) : (
                         <>
                             <h3 className="font-bold mt-4">Активные заказы</h3>
-                            <OrderList orders={activeOrders} />
+                            <OrderList orders={activeOrders} onSelectOrder={handleSelectOrder} />
                         </>
                     )}
                 </>
