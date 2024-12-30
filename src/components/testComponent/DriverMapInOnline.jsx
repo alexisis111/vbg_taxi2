@@ -173,11 +173,17 @@ const DriverMapInOnline = () => {
     };
 
     const handleSelectOrder = (order) => {
-        setSelectedOrder(order);
-        const pickupCoords = [userLocation[0], userLocation[1]];
-        const dropoffCoords = [order.dropoffLat, order.dropoffLng];
-        setSecondaryLocation(dropoffCoords);
-        getRoute(pickupCoords, dropoffCoords);
+        if (selectedOrder?.id === order.id) {
+            setSelectedOrder(null);
+            setSecondaryLocation(null);
+            setRouteCoords([]);
+        } else {
+            setSelectedOrder(order);
+            const pickupCoords = [userLocation[0], userLocation[1]];
+            const dropoffCoords = [order.dropoffLat, order.dropoffLng];
+            setSecondaryLocation(dropoffCoords);
+            getRoute(pickupCoords, dropoffCoords);
+        }
     };
 
     useEffect(() => {
