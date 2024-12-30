@@ -15,7 +15,7 @@ const CenteredMarker = React.memo(({ position, bounds, isSelectedOrder }) => {
         if (bounds) {
             map.fitBounds(bounds, { padding: [50, 50] });
         } else if (position && !isSelectedOrder) {
-            map.setView(position, 13, { animate: true });
+            map.setView(position, 13, { animate: true }); // Центрируем на текущей геолокации
         }
     }, [position, bounds, map, isSelectedOrder]);
 
@@ -106,6 +106,9 @@ const DriverMapInOnline = () => {
                 setIsOnline(!isOnline);
                 if (newStatus === 'offline') {
                     setActiveOrders([]);
+                    setSelectedOrder(null); // Сброс выбранного заказа
+                    setRouteCoords([]); // Сброс маршрута
+                    setSecondaryLocation(null); // Сброс второго маркера
                 }
             } else {
                 throw new Error('Ошибка обновления статуса.');
