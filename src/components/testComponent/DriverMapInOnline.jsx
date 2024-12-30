@@ -20,6 +20,11 @@ const CenteredMarker = React.memo(({ position }) => {
     return <Marker position={position} />;
 });
 
+// Компонент второго маркера
+const SecondaryMarker = React.memo(({ position }) => {
+    return position ? <Marker position={position} /> : null;
+});
+
 // Компонент списка заказов
 const OrderList = ({ orders, onSelectOrder }) => {
     if (!orders.length) return <p>Нет активных заказов</p>;
@@ -47,6 +52,7 @@ const OrderList = ({ orders, onSelectOrder }) => {
 
 const DriverMapInOnline = () => {
     const [userLocation, setUserLocation] = useState(null);
+    const [secondaryLocation, setSecondaryLocation] = useState(null);
     const [locationChange, setLocationChange] = useState('');
     const [activeOrders, setActiveOrders] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -170,6 +176,7 @@ const DriverMapInOnline = () => {
         setSelectedOrder(order);
         const pickupCoords = [userLocation[0], userLocation[1]];
         const dropoffCoords = [order.dropoffLat, order.dropoffLng];
+        setSecondaryLocation(dropoffCoords);
         getRoute(pickupCoords, dropoffCoords);
     };
 
@@ -215,6 +222,7 @@ const DriverMapInOnline = () => {
                     attribution="&copy; OpenStreetMap contributors"
                 />
                 {userLocation && <CenteredMarker position={userLocation} />}
+                {secondaryLocation && <SecondaryMarker position={secondaryLocation} />}
                 {routeCoords.length > 0 && <Polyline positions={routeCoords} color="blue" />}
             </MapContainer>
 
