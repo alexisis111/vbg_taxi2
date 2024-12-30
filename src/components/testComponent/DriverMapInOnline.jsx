@@ -225,7 +225,7 @@ const DriverMapInOnline = () => {
         : null;
 
     return (
-        <div className="map-container">
+        <div className="map-container p-4">
             {errorMessage && <div className="error-message text-red-500 p-2">{errorMessage}</div>}
 
             <MapContainer center={[60.7076, 28.7528]} zoom={13} className="w-full h-[450px]">
