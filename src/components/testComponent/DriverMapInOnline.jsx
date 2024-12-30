@@ -3,6 +3,7 @@ import 'leaflet/dist/leaflet.css';
 import { MapContainer, TileLayer, Marker, useMap, Polyline } from 'react-leaflet';
 import axios from 'axios';
 import { useTelegram } from '../../hooks/useTelegram';
+import polyline from 'polyline';
 
 const API_KEY = '5b3ce3597851110001cf6248143b17765c594c79a4a1a61dc30df2cb';
 
