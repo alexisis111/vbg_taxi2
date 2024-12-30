@@ -48,11 +48,27 @@ const OrderList = ({ orders, onSelectOrder, selectedOrderId }) => {
                     <strong>Стоимость:</strong> {order.price} ₽<br />
                     {/* Кнопка открытия маршрута */}
                     <a
-                        href={`https://www.google.com/maps/dir/?api=1&origin=${order.pickupLat},${order.pickupLng}&destination=${order.dropoffLat},${order.dropoffLng}`}
+                        href={`intent://route?lat=${order.dropoffLat}&lon=${order.dropoffLng}#Intent;scheme=https;package=com.google.android.apps.maps;end;`}
                         target="_blank"
                         className="mt-2 text-blue-500"
                     >
-                        Открыть маршрут на карте
+                        Открыть маршрут в Google Maps
+                    </a>
+                    <br />
+                    <a
+                        href={`maps://?saddr=${order.pickupLat},${order.pickupLng}&daddr=${order.dropoffLat},${order.dropoffLng}`}
+                        target="_blank"
+                        className="mt-2 text-blue-500"
+                    >
+                        Открыть маршрут в Apple Maps
+                    </a>
+                    <br />
+                    <a
+                        href={`yandexmaps://build_route?lat_to=${order.dropoffLat}&lon_to=${order.dropoffLng}`}
+                        target="_blank"
+                        className="mt-2 text-blue-500"
+                    >
+                        Открыть маршрут в Яндекс.Карты
                     </a>
                 </li>
             ))}
