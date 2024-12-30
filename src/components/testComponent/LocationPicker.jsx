@@ -365,6 +365,7 @@ const LocationPicker = () => {
             user,
             queryId,
             userId,
+            dropoffCoords
         };
 
         console.log("Данные для отправки:", orderData); // Логирование данных
@@ -386,7 +387,7 @@ const LocationPicker = () => {
             });
 
         tg.sendData(JSON.stringify(orderData));
-    }, [pickup, dropoff, selectedTariff, routeDistance, tg, user, queryId, userId]);
+    }, [pickup, dropoff, selectedTariff, routeDistance, tg, user, queryId, userId, dropoffCoords]);
 
     useEffect(() => {
         tg.onEvent('mainButtonClicked', handleSendData);
