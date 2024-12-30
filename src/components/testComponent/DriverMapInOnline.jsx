@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import 'leaflet/dist/leaflet.css';
-import { MapContainer, TileLayer, Marker, Polyline, useMap } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, useMap } from 'react-leaflet';
 import axios from 'axios';
 import { useTelegram } from '../../hooks/useTelegram';
 
@@ -18,17 +18,13 @@ const CenteredMarker = React.memo(({ position }) => {
 });
 
 // Компонент списка заказов
-const OrderList = ({ orders, onSelectOrder }) => {
+const OrderList = ({ orders }) => {
     if (!orders.length) return <p>Нет активных заказов</p>;
 
     return (
         <ul className="order-list">
             {orders.map(order => (
-                <li
-                    key={order.id}
-                    className="order-item p-2 border border-blue-300 rounded mb-2"
-                    onClick={() => onSelectOrder(order)} // Добавляем обработчик клика
-                >
+                <li key={order.id} className="order-item p-2 border border-blue-300 rounded mb-2">
                     <strong>Заказ №{order.id}</strong><br />
                     <strong>Адрес отправления:</strong> {order.pickup}<br />
                     <strong>Адрес назначения:</strong> {order.dropoff}<br />
@@ -48,9 +44,10 @@ const DriverMapInOnline = () => {
     const [loading, setLoading] = useState(true);
     const [errorMessage, setErrorMessage] = useState('');
     const [isOnline, setIsOnline] = useState(false);
-    const [activeOrder, setActiveOrder] = useState(null); // Состояние для активного заказа
-    const [routeCoordinates, setRouteCoordinates] = useState([]); // Состояние для маршрута
     const { tg, user, userId } = useTelegram(); // используем хук для получения tg объекта
+
+
+
 
     // Обновление геолокации
     useEffect(() => {
@@ -65,6 +62,7 @@ const DriverMapInOnline = () => {
                 location: `${latitude},${longitude}`,
                 status: isOnline ? 'online' : 'offline'
             });
+
         };
 
         const handleError = (error) => {
@@ -106,7 +104,7 @@ const DriverMapInOnline = () => {
         }
     };
 
-    // Запрос активных заказов
+
     const fetchActiveOrders = async () => {
         if (!isOnline) return; // Не выполняем запрос, если водитель не в сети
 
@@ -134,37 +132,6 @@ const DriverMapInOnline = () => {
         }
     };
 
-    // Запрос маршрута между точками
-    const fetchRoute = async (pickup, dropoff) => {
-        try {
-            const response = await axios.get(`https://api.openrouteservice.org/v2/directions/driving-car`, {
-                params: {
-                    start: `${pickup.lng},${pickup.lat}`,
-                    end: `${dropoff.lng},${dropoff.lat}`
-                },
-                headers: {
-                    'Authorization': '5b3ce3597851110001cf6248143b17765c594c79a4a1a61dc30df2cb' // Замените на ваш API ключ
-                }
-            });
-
-            const route = response.data.routes[0].segments[0].steps; // Получаем шаги маршрута
-            drawRoute(route); // Функция для прорисовки маршрута на карте
-        } catch (error) {
-            console.error('Ошибка при получении маршрута:', error);
-        }
-    };
-
-    // Функция для прорисовки маршрута
-    const drawRoute = (route) => {
-        const routeCoordinates = route.map(step => [step.latitude, step.longitude]);
-        setRouteCoordinates(routeCoordinates); // Сохраняем координаты маршрута в состоянии
-    };
-
-    // Обработчик для выбора заказа
-    const handleOrderSelect = (order) => {
-        setActiveOrder(order); // Устанавливаем активный заказ
-        fetchRoute(order.pickup, order.dropoff); // Запрашиваем маршрут между точками
-    };
 
     useEffect(() => {
         // Проверка статуса водителя при загрузке страницы
@@ -209,9 +176,6 @@ const DriverMapInOnline = () => {
                     attribution="&copy; OpenStreetMap contributors"
                 />
                 {userLocation && <CenteredMarker position={userLocation} />}
-                {routeCoordinates.length > 0 && (
-                    <Polyline positions={routeCoordinates} color="blue" weight={5} />
-                )}
             </MapContainer>
 
             <div className="location-status mt-2 p-2 border border-gray-300 rounded">
@@ -239,7 +203,7 @@ const DriverMapInOnline = () => {
                     ) : (
                         <>
                             <h3 className="font-bold mt-4">Активные заказы</h3>
-                            <OrderList orders={activeOrders} onSelectOrder={handleOrderSelect} />
+                            <OrderList orders={activeOrders} />
                         </>
                     )}
                 </>
