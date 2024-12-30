@@ -116,8 +116,9 @@ const DriverMapInOnline = () => {
                     .filter(order => order.canceled_at === null)
                     .map(order => ({
                         ...order,
-                        dropoffLat: order.dropoffCoords?.[0] || 'Не указано',
-                        dropoffLng: order.dropoffCoords?.[1] || 'Не указано'
+                        // Используем dropoff_lat и dropoff_lng для координат
+                        dropoffLat: order.dropoff_lat || 'Не указано',
+                        dropoffLng: order.dropoff_lng || 'Не указано'
                     }));
                 setActiveOrders(orders);
             } else {
@@ -131,6 +132,7 @@ const DriverMapInOnline = () => {
             setLoading(false);
         }
     };
+
 
     useEffect(() => {
         const checkDriverStatus = async () => {
