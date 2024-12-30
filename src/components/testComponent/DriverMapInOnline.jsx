@@ -131,6 +131,32 @@ const DriverMapInOnline = () => {
             setLoading(false);
         }
     };
+
+    useEffect(() => {
+        // Проверка статуса водителя при загрузке страницы
+        const checkDriverStatus = async () => {
+            try {
+                const response = await axios.get(`https://13c6-185-108-19-43.ngrok-free.app/driver-status/${userId}`, {
+                    headers: {
+                        "Content-Type": "application/json",
+                        "ngrok-skip-browser-warning": "true"
+                    }
+                });
+
+                if (response.status === 200 && response.data?.status) {
+                    setIsOnline(response.data.status === 'online');
+                } else {
+                    throw new Error('Некорректный ответ от сервера.');
+                }
+            } catch (error) {
+                setErrorMessage('Не удалось проверить статус водителя. Попробуйте позже.');
+                console.error('Ошибка при проверке статуса водителя:', error);
+            }
+        };
+
+        checkDriverStatus();
+    }, [userId]);
+
     useEffect(() => {
         if (isOnline) {
             fetchActiveOrders();
