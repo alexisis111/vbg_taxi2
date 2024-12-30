@@ -166,7 +166,6 @@ const DriverMapInOnline = () => {
         }
     }, [isOnline]);
 
-
     return (
         <div className="map-container">
             {errorMessage && <div className="error-message text-red-500 p-2">{errorMessage}</div>}
