@@ -45,7 +45,15 @@ const OrderList = ({ orders, onSelectOrder, selectedOrderId }) => {
                     <strong>Координаты назначения:</strong> {order.dropoffLat}, {order.dropoffLng}<br />
                     <strong>Тариф:</strong> {order.tariff}<br />
                     <strong>Расстояние:</strong> {order.distance} км<br />
-                    <strong>Стоимость:</strong> {order.price} ₽
+                    <strong>Стоимость:</strong> {order.price} ₽<br />
+                    {/* Кнопка открытия маршрута */}
+                    <a
+                        href={`https://www.google.com/maps/dir/?api=1&origin=${order.pickupLat},${order.pickupLng}&destination=${order.dropoffLat},${order.dropoffLng}`}
+                        target="_blank"
+                        className="mt-2 text-blue-500"
+                    >
+                        Открыть маршрут на карте
+                    </a>
                 </li>
             ))}
         </ul>
