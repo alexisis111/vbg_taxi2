@@ -364,8 +364,9 @@ const LocationPicker = () => {
             user,
             queryId,
             userId,
-            data: JSON.stringify({ dropoffCoords }) // Преобразуем dropoffCoords в строку
+            dropoffCoords // передаем как массив
         };
+
 
 
         console.log("Данные для отправки:", orderData); // Логирование данных
