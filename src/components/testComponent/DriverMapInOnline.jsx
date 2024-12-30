@@ -26,7 +26,7 @@ const SecondaryMarker = React.memo(({ position }) => {
 });
 
 // Компонент списка заказов
-const OrderList = ({ orders, onSelectOrder }) => {
+const OrderList = ({ orders, onSelectOrder, selectedOrderId }) => {
     if (!orders.length) return <p>Нет активных заказов</p>;
 
     return (
@@ -34,7 +34,7 @@ const OrderList = ({ orders, onSelectOrder }) => {
             {orders.map(order => (
                 <li
                     key={order.id}
-                    className="order-item p-2 border border-blue-300 rounded mb-2"
+                    className={`order-item p-2 border rounded mb-2 ${selectedOrderId === order.id ? 'border-green-500' : 'border-blue-300'}`}
                     onClick={() => onSelectOrder(order)} // Выбор заказа
                 >
                     <strong>Заказ №{order.id}</strong><br />
@@ -251,7 +251,7 @@ const DriverMapInOnline = () => {
                     ) : (
                         <>
                             <h3 className="font-bold mt-4">Активные заказы</h3>
-                            <OrderList orders={activeOrders} onSelectOrder={handleSelectOrder} />
+                            <OrderList orders={activeOrders} onSelectOrder={handleSelectOrder} selectedOrderId={selectedOrder?.id} />
                         </>
                     )}
                 </>
