@@ -15,7 +15,7 @@ const CenteredMarker = React.memo(({ position, bounds, isSelectedOrder }) => {
         if (bounds) {
             map.fitBounds(bounds, { padding: [50, 50] });
         } else if (position && !isSelectedOrder) {
-            map.setView(position, map.getZoom(), { animate: true });
+            map.setView(position, 13, { animate: true });
         }
     }, [position, bounds, map, isSelectedOrder]);
 
