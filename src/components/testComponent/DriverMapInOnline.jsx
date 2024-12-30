@@ -3,9 +3,6 @@ import 'leaflet/dist/leaflet.css';
 import { MapContainer, TileLayer, Marker, useMap } from 'react-leaflet';
 import axios from 'axios';
 import { useTelegram } from '../../hooks/useTelegram';
-import L from 'leaflet'; // Для работы с Leaflet
-
-const API_KEY = '5b3ce3597851110001cf6248143b17765c594c79a4a1a61dc30df2cb';
 
 // Компонент CenteredMarker
 const CenteredMarker = React.memo(({ position }) => {
@@ -21,17 +18,13 @@ const CenteredMarker = React.memo(({ position }) => {
 });
 
 // Компонент списка заказов
-const OrderList = ({ orders, onSelectOrder }) => {
+const OrderList = ({ orders }) => {
     if (!orders.length) return <p>Нет активных заказов</p>;
 
     return (
         <ul className="order-list">
             {orders.map(order => (
-                <li
-                    key={order.id}
-                    className="order-item p-2 border border-blue-300 rounded mb-2"
-                    onClick={() => onSelectOrder(order)} // Выбор заказа
-                >
+                <li key={order.id} className="order-item p-2 border border-blue-300 rounded mb-2">
                     <strong>Заказ №{order.id}</strong><br />
                     <strong>Адрес отправления:</strong> {order.pickup}<br />
                     <strong>Адрес назначения:</strong> {order.dropoff}<br />
@@ -52,7 +45,6 @@ const DriverMapInOnline = () => {
     const [loading, setLoading] = useState(true);
     const [errorMessage, setErrorMessage] = useState('');
     const [isOnline, setIsOnline] = useState(false);
-    const [routeCoords, setRouteCoords] = useState([]);
     const { tg, user, userId } = useTelegram();
 
     useEffect(() => {
@@ -60,6 +52,13 @@ const DriverMapInOnline = () => {
             const { latitude, longitude } = position.coords;
             setUserLocation([latitude, longitude]);
             setLocationChange(`Геолокация изменилась на ${latitude.toFixed(6)}, ${longitude.toFixed(6)}`);
+
+            console.log('Отправка данных на сервер:', {
+                user_id: userId,
+                name: user || 'Неизвестный',
+                location: `${latitude},${longitude}`,
+                status: isOnline ? 'online' : 'offline'
+            });
         };
 
         const handleError = (error) => {
@@ -117,6 +116,7 @@ const DriverMapInOnline = () => {
                     .filter(order => order.canceled_at === null)
                     .map(order => ({
                         ...order,
+                        // Используем dropoff_lat и dropoff_lng для координат
                         dropoffLat: order.dropoff_lat || 'Не указано',
                         dropoffLng: order.dropoff_lng || 'Не указано'
                     }));
@@ -133,6 +133,31 @@ const DriverMapInOnline = () => {
         }
     };
 
+
+    useEffect(() => {
+        const checkDriverStatus = async () => {
+            try {
+                const response = await axios.get(`https://13c6-185-108-19-43.ngrok-free.app/driver-status/${userId}`, {
+                    headers: {
+                        "Content-Type": "application/json",
+                        "ngrok-skip-browser-warning": "true"
+                    }
+                });
+
+                if (response.status === 200 && response.data?.status) {
+                    setIsOnline(response.data.status === 'online');
+                } else {
+                    throw new Error('Некорректный ответ от сервера.');
+                }
+            } catch (error) {
+                setErrorMessage('Не удалось проверить статус водителя. Попробуйте позже.');
+                console.error('Ошибка при проверке статуса водителя:', error);
+            }
+        };
+
+        checkDriverStatus();
+    }, [userId]);
+
     useEffect(() => {
         if (isOnline) {
             fetchActiveOrders();
@@ -140,42 +165,6 @@ const DriverMapInOnline = () => {
             return () => clearInterval(intervalId);
         }
     }, [isOnline]);
-
-    // Функция для получения маршрута
-    const getRoute = async (pickupCoords, dropoffCoords) => {
-        try {
-            const response = await axios.post(
-                'https://api.openrouteservice.org/v2/directions/driving-car',
-                {
-                    coordinates: [pickupCoords, dropoffCoords].map(coord => [coord[1], coord[0]]),
-                },
-                {
-                    headers: {
-                        'Authorization': API_KEY, // Замените на ваш ключ
-                        'Content-Type': 'application/json',
-                    },
-                }
-            );
-
-            if (response.data && response.data.routes && response.data.routes.length > 0) {
-                const route = response.data.routes[0];
-                const encodedPolyline = route.geometry;
-                const decodedCoords = polyline.decode(encodedPolyline);
-                setRouteCoords(decodedCoords); // Сохраняем координаты маршрута
-            } else {
-                console.error('API не вернуло корректные данные:', response.data);
-            }
-        } catch (error) {
-            console.error('Ошибка при получении маршрута:', error);
-        }
-    };
-
-    // Функция для обработки выбора заказа
-    const handleOrderSelection = (order) => {
-        const pickupCoords = [order.pickup_lat, order.pickup_lng];
-        const dropoffCoords = [order.dropoff_lat, order.dropoff_lng];
-        getRoute(pickupCoords, dropoffCoords); // Получаем маршрут
-    };
 
     return (
         <div className="map-container">
@@ -187,9 +176,6 @@ const DriverMapInOnline = () => {
                     attribution="&copy; OpenStreetMap contributors"
                 />
                 {userLocation && <CenteredMarker position={userLocation} />}
-                {routeCoords.length > 0 && (
-                    <L.Polyline positions={routeCoords} color="blue" /> // Отображаем маршрут
-                )}
             </MapContainer>
 
             <div className="location-status mt-2 p-2 border border-gray-300 rounded">
@@ -217,7 +203,7 @@ const DriverMapInOnline = () => {
                     ) : (
                         <>
                             <h3 className="font-bold mt-4">Активные заказы</h3>
-                            <OrderList orders={activeOrders} onSelectOrder={handleOrderSelection} />
+                            <OrderList orders={activeOrders} />
                         </>
                     )}
                 </>
