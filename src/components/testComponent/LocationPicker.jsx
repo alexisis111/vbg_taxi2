@@ -358,15 +358,15 @@ const LocationPicker = () => {
         const orderData = {
             pickup,
             dropoff,
-            // Передаем name тарифа
             tariff: selectedTariffObj ? selectedTariffObj.name : selectedTariff,
             distance: routeDistance,
-            price: totalPrice, // Добавляем сумму заказа
+            price: totalPrice,
             user,
             queryId,
             userId,
-            dropoffCoords
+            data: JSON.stringify({ dropoffCoords }) // Преобразуем dropoffCoords в строку
         };
+
 
         console.log("Данные для отправки:", orderData); // Логирование данных
 
