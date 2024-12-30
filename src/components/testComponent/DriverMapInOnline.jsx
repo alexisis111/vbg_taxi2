@@ -8,16 +8,16 @@ import polyline from 'polyline';
 const API_KEY = '5b3ce3597851110001cf6248143b17765c594c79a4a1a61dc30df2cb';
 
 // Компонент CenteredMarker
-const CenteredMarker = React.memo(({ position, bounds }) => {
+const CenteredMarker = React.memo(({ position, bounds, isSelectedOrder }) => {
     const map = useMap();
 
     useEffect(() => {
         if (bounds) {
             map.fitBounds(bounds, { padding: [50, 50] });
-        } else if (position) {
+        } else if (position && !isSelectedOrder) {
             map.setView(position, map.getZoom(), { animate: true });
         }
-    }, [position, bounds, map]);
+    }, [position, bounds, map, isSelectedOrder]);
 
     return position ? <Marker position={position} /> : null;
 });
@@ -233,7 +233,7 @@ const DriverMapInOnline = () => {
                     url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
                     attribution="&copy; OpenStreetMap contributors"
                 />
-                {userLocation && <CenteredMarker position={userLocation} bounds={mapBounds} />}
+                {userLocation && <CenteredMarker position={userLocation} bounds={mapBounds} isSelectedOrder={!!selectedOrder} />}
                 {secondaryLocation && <SecondaryMarker position={secondaryLocation} />}
                 {routeCoords.length > 0 && <Polyline positions={routeCoords} color="blue" />}
             </MapContainer>
