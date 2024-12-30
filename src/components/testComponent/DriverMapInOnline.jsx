@@ -132,6 +132,7 @@ const DriverMapInOnline = () => {
         }
     };
 
+
     useEffect(() => {
         // Проверка статуса водителя при загрузке страницы
         const checkDriverStatus = async () => {
