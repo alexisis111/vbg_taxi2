@@ -121,7 +121,7 @@ const DriverMapInOnline = () => {
         const newStatus = isOnline ? 'offline' : 'online';
 
         try {
-            const response = await axios.put('https://13c6-185-108-19-43.ngrok-free.app/status', {
+            const response = await axios.put('https://169f-185-108-19-43.ngrok-free.app/status', {
                 user_id: userId,
                 status: newStatus
             });
