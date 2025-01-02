@@ -441,8 +441,8 @@ const LocationPicker = () => {
             <div className="leaMaps">
                 <MapContainer
                     center={[60.7076, 28.7528]}
-                    zoom={13}
-                    className="w-full h-[450px]"
+                    zoom={5}
+                    className="relative w-screen h-screen"
                     whenCreated={mapInstance => {
                         mapRef.current = mapInstance;
                     }}
@@ -548,3 +548,7 @@ const LocationPicker = () => {
 };
 
 export default LocationPicker;
+
+
+
+
