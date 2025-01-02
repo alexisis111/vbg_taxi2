@@ -371,7 +371,7 @@ const LocationPicker = () => {
 
         console.log("Данные для отправки:", orderData); // Логирование данных
 
-        fetch('https://13c6-185-108-19-43.ngrok-free.app/order-data', {
+        fetch('https://169f-185-108-19-43.ngrok-free.app/order-data', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -442,7 +442,7 @@ const LocationPicker = () => {
                 <MapContainer
                     center={[60.7076, 28.7528]}
                     zoom={5}
-                    className="relative w-screen h-screen"
+                    className="w-full h-[450px]"
                     whenCreated={mapInstance => {
                         mapRef.current = mapInstance;
                     }}
