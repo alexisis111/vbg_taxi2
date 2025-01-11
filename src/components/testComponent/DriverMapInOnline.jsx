@@ -121,7 +121,7 @@ const DriverMapInOnline = () => {
         const newStatus = isOnline ? 'offline' : 'online';
 
         try {
-            const response = await axios.put('https://169f-185-108-19-43.ngrok-free.app/status', {
+            const response = await axios.put('https://light-carrots-brake.loca.lt/status', {
                 user_id: userId,
                 status: newStatus
             });
@@ -148,7 +148,7 @@ const DriverMapInOnline = () => {
 
         setLoading(true);
         try {
-            const response = await axios.get('https://169f-185-108-19-43.ngrok-free.app/active-orders', {
+            const response = await axios.get('https://light-carrots-brake.loca.lt/active-orders', {
                 headers: {
                     "Content-Type": "application/json",
                     "ngrok-skip-browser-warning": "true"
@@ -218,7 +218,7 @@ const DriverMapInOnline = () => {
     useEffect(() => {
         const checkDriverStatus = async () => {
             try {
-                const response = await axios.get(`https://169f-185-108-19-43.ngrok-free.app/driver-status/${userId}`, {
+                const response = await axios.get(`https://light-carrots-brake.loca.lt/driver-status/${userId}`, {
                     headers: {
                         "Content-Type": "application/json",
                         "ngrok-skip-browser-warning": "true"

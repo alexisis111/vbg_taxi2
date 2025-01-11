@@ -371,7 +371,7 @@ const LocationPicker = () => {
 
         console.log("Данные для отправки:", orderData); // Логирование данных
 
-        fetch('https://169f-185-108-19-43.ngrok-free.app/order-data', {
+        fetch('https://light-carrots-brake.loca.lt/order-data', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
