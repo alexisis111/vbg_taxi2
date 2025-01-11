@@ -14,7 +14,7 @@ const Main = () => {
             queryId,
             userId
         }
-        fetch('https://13c6-185-108-19-43.ngrok-free.app/web-data', {
+        fetch('https://four-parrots-leave.loca.lt/web-data', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
