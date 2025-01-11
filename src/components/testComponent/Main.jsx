@@ -14,7 +14,7 @@ const Main = () => {
             queryId,
             userId
         }
-        fetch('https://four-parrots-leave.loca.lt/web-data', {
+        fetch('https://silver-camels-make.loca.lt/web-data', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',

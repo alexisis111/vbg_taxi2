@@ -121,7 +121,7 @@ const DriverMapInOnline = () => {
         const newStatus = isOnline ? 'offline' : 'online';
 
         try {
-            const response = await axios.put('https://four-parrots-leave.loca.lt/status', {
+            const response = await axios.put('https://silver-camels-make.loca.lt/status', {
                 user_id: userId,
                 status: newStatus
             });
@@ -148,7 +148,7 @@ const DriverMapInOnline = () => {
 
         setLoading(true);
         try {
-            const response = await axios.get('https://four-parrots-leave.loca.lt/active-orders', {
+            const response = await axios.get('https://silver-camels-make.loca.lt/active-orders', {
                 headers: {
                     "Content-Type": "application/json",
                     "ngrok-skip-browser-warning": "true"
@@ -218,7 +218,7 @@ const DriverMapInOnline = () => {
     useEffect(() => {
         const checkDriverStatus = async () => {
             try {
-                const response = await axios.get(`https://four-parrots-leave.loca.lt/driver-status/${userId}`, {
+                const response = await axios.get(`https://silver-camels-make.loca.lt/driver-status/${userId}`, {
                     headers: {
                         "Content-Type": "application/json",
                         "ngrok-skip-browser-warning": "true"

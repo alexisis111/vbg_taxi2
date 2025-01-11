@@ -371,7 +371,7 @@ const LocationPicker = () => {
 
         console.log("Данные для отправки:", orderData); // Логирование данных
 
-        fetch('https://four-parrots-leave.loca.lt/order-data', {
+        fetch('https://silver-camels-make.loca.lt/order-data', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
